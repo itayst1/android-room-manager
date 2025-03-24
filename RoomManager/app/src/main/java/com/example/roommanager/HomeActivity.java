@@ -21,6 +21,7 @@ import androidx.credentials.exceptions.ClearCredentialException;
 
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 public class HomeActivity extends AppCompatActivity {
@@ -42,6 +43,11 @@ public class HomeActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        String username = mAuth.getCurrentUser().getDisplayName();
+        if(username != null)
+            Objects.requireNonNull(getSupportActionBar()).setTitle("Hello, " + mAuth.getCurrentUser().getDisplayName());
+        else
+            Objects.requireNonNull(getSupportActionBar()).setTitle("Hello");
 
         progressBar = findViewById(R.id.progress_bar);
     }
