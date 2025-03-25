@@ -19,6 +19,7 @@ import android.widget.Toolbar;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -64,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
 
         signIn = findViewById(R.id.sign_in);
         signIn.setOnClickListener(this::onSignInClick);
-
     }
 
     public void onSignInClick(View view){

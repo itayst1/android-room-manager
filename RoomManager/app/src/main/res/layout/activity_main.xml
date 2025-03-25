@@ -13,21 +13,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Welcome!"
+        android:textColor="#000000"
         android:textSize="55sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.171" />
+        app:layout_constraintVertical_bias="0.12" />
 
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/sign_in"
+    <androidx.cardview.widget.CardView
         android:layout_width="230dp"
-        android:layout_height="80dp"
-        android:onClick="onSignInClick"
+        android:layout_height="60dp"
+        app:cardCornerRadius="25dp"
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintVertical_bias="0.5">
+
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/sign_in"
+            android:layout_width="240dp"
+            android:layout_height="100dp"
+            app:buttonSize="wide"
+            android:layout_gravity="center"/>
+    </androidx.cardview.widget.CardView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
