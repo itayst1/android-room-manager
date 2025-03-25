@@ -52,7 +52,7 @@ public class HomeActivity extends AppCompatActivity {
         else
             Objects.requireNonNull(getSupportActionBar()).setTitle("Hello");
 
-        progressBar = findViewById(R.id.progress_bar);
+        progressBar = findViewById(R.id.progress_bar_sign_out);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.example.roommanager;
 
-import static android.content.ContentValues.TAG;
 import static com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL;
 
 import android.content.ClipData;
@@ -14,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
@@ -52,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SignInButton signIn;
 
+    private ProgressBar progressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
         signIn = findViewById(R.id.sign_in);
         signIn.setOnClickListener(this::onSignInClick);
+
+        progressBar = findViewById(R.id.progress_bar_sign_in);
     }
 
     public void onSignInClick(View view){
@@ -83,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         // [END create_credential_manager_request]
 
+        progressBar.setVisibility(View.VISIBLE);
+
         // Launch Credential Manager UI
         credentialManager.getCredentialAsync(
                 getBaseContext(),
@@ -99,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(GetCredentialException e) {
-                        Log.e(TAG, "Couldn't retrieve user's credentials: " + e.getLocalizedMessage());
+                        Log.e("sign in", "Couldn't retrieve user's credentials: " + e.getLocalizedMessage());
                     }
                 }
         );
@@ -116,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             // Sign in to Firebase with using the token
             firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
         } else {
-            Log.w(TAG, "Credential is not of type Google ID!");
+            Log.w("sign in", "Credential is not of type Google ID!");
         }
     }
 
@@ -126,12 +132,13 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Sign in success, update UI with the signed-in user's information
-                        Log.d(TAG, "signInWithCredential:success");
+                        Log.d("sign in", "signInWithCredential:success");
                         FirebaseUser user = mAuth.getCurrentUser();
+                        progressBar.setVisibility(View.GONE);
                         startActivity(new Intent(this, HomeActivity.class));
                     } else {
                         // If sign in fails, display a message to the user
-                        Log.w(TAG, "signInWithCredential:failure", task.getException());
+                        Log.w("sign in", "signInWithCredential:failure", task.getException());
                     }
                 });
     }

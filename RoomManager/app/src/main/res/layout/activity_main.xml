@@ -5,8 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#6BCBCC"
-    tools:context=".MainActivity" >
+    android:background="#2789B6"
+    tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/welcome"
@@ -21,12 +21,24 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.12" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar_sign_in"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:elevation="5dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.cardview.widget.CardView
         android:layout_width="230dp"
         android:layout_height="60dp"
-        app:cardCornerRadius="25dp"
-        app:cardElevation="10dp"
         app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="25dp"
+        app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,8 +49,8 @@
             android:id="@+id/sign_in"
             android:layout_width="240dp"
             android:layout_height="100dp"
-            app:buttonSize="wide"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            app:buttonSize="wide" />
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
