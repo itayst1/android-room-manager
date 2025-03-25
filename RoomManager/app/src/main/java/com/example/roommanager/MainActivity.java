@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         // [END create_credential_manager_request]
 
-        progressBar.setVisibility(View.VISIBLE);
+        runOnUiThread(() -> {progressBar.setVisibility(View.VISIBLE);});
 
         // Launch Credential Manager UI
         credentialManager.getCredentialAsync(
@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(GetCredentialException e) {
+                        runOnUiThread(() -> {progressBar.setVisibility(View.GONE);});
+                        mAuth.signOut();
                         Log.e("sign in", "Couldn't retrieve user's credentials: " + e.getLocalizedMessage());
                     }
                 }
@@ -122,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
             // Sign in to Firebase with using the token
             firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
         } else {
+            runOnUiThread(() -> {progressBar.setVisibility(View.GONE);});
             Log.w("sign in", "Credential is not of type Google ID!");
         }
     }
@@ -134,10 +137,11 @@ public class MainActivity extends AppCompatActivity {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d("sign in", "signInWithCredential:success");
                         FirebaseUser user = mAuth.getCurrentUser();
-                        progressBar.setVisibility(View.GONE);
+                        runOnUiThread(() -> {progressBar.setVisibility(View.GONE);});
                         startActivity(new Intent(this, HomeActivity.class));
                     } else {
                         // If sign in fails, display a message to the user
+                        runOnUiThread(() -> {progressBar.setVisibility(View.GONE);});
                         Log.w("sign in", "signInWithCredential:failure", task.getException());
                     }
                 });
@@ -148,7 +152,12 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null)
-            startActivity(new Intent(this, HomeActivity.class));
+        try {
+            if (currentUser.getEmail() != null)
+                startActivity(new Intent(this, HomeActivity.class));
+        } catch (Exception e){
+            mAuth.signOut();
+            e.printStackTrace();
+        }
     }
 }
