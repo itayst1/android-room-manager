@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
@@ -46,13 +47,23 @@ public class HomeActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        String username = mAuth.getCurrentUser().getDisplayName();
-        if(username != null)
-            Objects.requireNonNull(getSupportActionBar()).setTitle("Hello, " + mAuth.getCurrentUser().getDisplayName());
+        if(mAuth.getCurrentUser() != null){
+            String username = mAuth.getCurrentUser().getDisplayName();
+            if(username != null)
+                Objects.requireNonNull(getSupportActionBar()).setTitle("Hello, " + mAuth.getCurrentUser().getDisplayName());
+            else
+                Objects.requireNonNull(getSupportActionBar()).setTitle("Hello");
+        }
         else
             Objects.requireNonNull(getSupportActionBar()).setTitle("Hello");
 
         progressBar = findViewById(R.id.progress_bar_sign_out);
+
+        Button reserveButton = findViewById(R.id.reserve);
+        reserveButton.setOnClickListener(v -> {
+            ReserveRoomDialog dialog = new ReserveRoomDialog();
+            dialog.show(getSupportFragmentManager(), "ReserveRoomDialog");
+        });
     }
 
     @Override
