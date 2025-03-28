@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +37,7 @@ public class MyReservationsActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private String userId;
     private ProgressBar progressBar;
+    Context style;
 
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +48,8 @@ public class MyReservationsActivity extends AppCompatActivity {
         context = this;
         buttonContainer = findViewById(R.id.buttonContainer);
         buttonContainer.setOrientation(LinearLayout.VERTICAL);
+
+        style = new ContextThemeWrapper(this, R.style.CustomDialogTheme);
 
         userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         database = FirebaseDatabase.getInstance();
@@ -110,7 +114,7 @@ public class MyReservationsActivity extends AppCompatActivity {
     }
 
     private void showReservationDetails(String roomName, String startTime, String duration, DatabaseReference reservationRef) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(style);
         builder.setTitle("Reservation Details");
         builder.setMessage("Room: " + roomName + "\nStart Time: " + startTime + "\nDuration: " + duration);
 
@@ -118,9 +122,27 @@ public class MyReservationsActivity extends AppCompatActivity {
         builder.setNegativeButton("Delete", (dialog, which) -> deleteReservation(reservationRef));
         builder.setNeutralButton("Close", (dialog, which) -> dialog.dismiss());
 
+
         AlertDialog dialog = builder.create();
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_button);
+
         dialog.show();
+
+        // Manually change the button text color
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        // Set button text color to black
+        if (positiveButton != null) {
+            positiveButton.setTextColor(0xFF000000);
+        }
+        if (negativeButton != null) {
+            negativeButton.setTextColor(0xFF000000);
+        }
+        if (neutralButton != null) {
+            neutralButton.setTextColor(0xFF000000);
+        }
     }
 
     private void editReservation(DatabaseReference reservationRef) {
@@ -129,7 +151,7 @@ public class MyReservationsActivity extends AppCompatActivity {
     }
 
     private void deleteReservation(DatabaseReference reservationRef) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(style);
         builder.setMessage("Are you sure you want to delete this reservation?")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     reservationRef.removeValue().addOnCompleteListener(task -> {
@@ -143,8 +165,20 @@ public class MyReservationsActivity extends AppCompatActivity {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
-
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_button);
         dialog.show();
+
+        // Manually change the button text color
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+        // Set button text color to black
+        if (positiveButton != null) {
+            positiveButton.setTextColor(0xFF000000);
+        }
+        if (negativeButton != null) {
+            negativeButton.setTextColor(0xFF000000);
+        }
     }
 
     public void onHomeButtonClick(View view) {
