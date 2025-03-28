@@ -2,4 +2,6 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="primaryColor">#2789B6</color> <!-- Background Color -->
+    <color name="primaryDarkColor">#64AECA</color> <!-- Toolbar and Button Color -->
 </resources>

@@ -3,6 +3,7 @@ package com.example.roommanager;
 import static android.content.ContentValues.TAG;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +24,8 @@ import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.exceptions.ClearCredentialException;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -33,6 +37,9 @@ public class HomeActivity extends AppCompatActivity {
     private CredentialManager credentialManager;
 
     private ProgressBar progressBar;
+
+    private Button reserveButton;
+    private Button myReservationsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +53,7 @@ public class HomeActivity extends AppCompatActivity {
         credentialManager = CredentialManager.create(getBaseContext());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
         setSupportActionBar(toolbar);
         if(mAuth.getCurrentUser() != null){
             String username = mAuth.getCurrentUser().getDisplayName();
@@ -59,10 +67,15 @@ public class HomeActivity extends AppCompatActivity {
 
         progressBar = findViewById(R.id.progress_bar_sign_out);
 
-        Button reserveButton = findViewById(R.id.reserve);
+        reserveButton = findViewById(R.id.reserve);
         reserveButton.setOnClickListener(v -> {
             ReserveRoomDialog dialog = new ReserveRoomDialog();
             dialog.show(getSupportFragmentManager(), "ReserveRoomDialog");
+        });
+
+        myReservationsButton = findViewById(R.id.myReservations);
+        myReservationsButton.setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, MyReservationsActivity.class));
         });
     }
 
