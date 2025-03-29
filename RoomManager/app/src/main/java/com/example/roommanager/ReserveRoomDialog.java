@@ -1,6 +1,8 @@
 package com.example.roommanager;
 
+import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -23,6 +25,7 @@ import androidx.fragment.app.DialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Calendar;
 import java.util.Objects;
 
 public class ReserveRoomDialog extends DialogFragment {
@@ -44,9 +47,46 @@ public class ReserveRoomDialog extends DialogFragment {
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+        // Find views
+        Button selectDateButton = dialog.findViewById(R.id.date_button);
+        Button selectTimeButton = dialog.findViewById(R.id.time_button);
+
+// Variables to store selected date and time
+        final Calendar selectedDateTime = Calendar.getInstance();
+
+// Handle Select Date button
+        selectDateButton.setOnClickListener(v -> {
+            int year = selectedDateTime.get(Calendar.YEAR);
+            int month = selectedDateTime.get(Calendar.MONTH);
+            int day = selectedDateTime.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(), (datePicker, selectedYear, selectedMonth, selectedDay) -> {
+                selectedDateTime.set(selectedYear, selectedMonth, selectedDay);
+                String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
+                selectDateButton.setText(formattedDate); // Update button text
+            }, year, month, day);
+
+            datePickerDialog.show();
+        });
+
+// Handle Select Time button
+        selectTimeButton.setOnClickListener(v -> {
+            int hour = selectedDateTime.get(Calendar.HOUR_OF_DAY);
+            int minute = selectedDateTime.get(Calendar.MINUTE);
+
+            TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(), (timePicker, selectedHour, selectedMinute) -> {
+                selectedDateTime.set(Calendar.HOUR_OF_DAY, selectedHour);
+                selectedDateTime.set(Calendar.MINUTE, selectedMinute);
+
+                String formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute);
+                selectTimeButton.setText(formattedTime); // Update button text
+            }, hour, minute, false);
+
+            timePickerDialog.show();
+        });
+
         // Initialize UI components
         roomSpinner = view.findViewById(R.id.room_spinner);
-        startTimePicker = view.findViewById(R.id.start_time_picker);
         durationPicker = view.findViewById(R.id.duration_picker);
         reserveButton = view.findViewById(R.id.reserve_button);
         cancelButton = view.findViewById(R.id.cancel_button);
@@ -81,9 +121,6 @@ public class ReserveRoomDialog extends DialogFragment {
             }
         });
 
-        // Configure TimePicker for AM/PM mode
-        startTimePicker.setIs24HourView(false);
-
         // Configure NumberPicker for duration (30 min to 4 hours)
         String[] durations = {"30 min", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours"};
         durationPicker.setMinValue(0);
@@ -94,20 +131,18 @@ public class ReserveRoomDialog extends DialogFragment {
         reserveButton.setOnClickListener(v -> {
             String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail(); // Get current user ID
             String selectedRoom = roomSpinner.getSelectedItem().toString();
-            int startHour = startTimePicker.getHour();
-            int startMinute = startTimePicker.getMinute();
-            String startTime = formatTime(startHour, startMinute);
+            String startTime = selectTimeButton.getText().toString();
+            String selectedDate = selectDateButton.getText().toString();
             String selectedDuration = durations[durationPicker.getValue()];
 
             // Create a new reservation object
             Reservation reservation = new Reservation(userEmail, startTime, selectedDuration);
 
             dismiss();
-            Toast.makeText(context, selectedRoom + " reserved from " + startTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show();
 
-            database.getReference("reservations/" + selectedRoom + "/" + userId).setValue(reservation)
+            database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom + "/" + userId).setValue(reservation)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, "Room Reserved!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + startTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(context, "Failed to reserve room", Toast.LENGTH_SHORT).show();
