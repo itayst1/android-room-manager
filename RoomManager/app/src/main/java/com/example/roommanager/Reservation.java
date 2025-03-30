@@ -14,5 +14,17 @@ public class Reservation {
         this.startTime = startTime;
         this.duration = duration;
     }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
 }
 

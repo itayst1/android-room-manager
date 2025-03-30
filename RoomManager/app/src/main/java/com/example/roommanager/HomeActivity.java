@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,8 +23,6 @@ import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.exceptions.ClearCredentialException;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -33,13 +30,9 @@ import java.util.concurrent.Executors;
 public class HomeActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
-
     private CredentialManager credentialManager;
-
     private ProgressBar progressBar;
-
-    private Button reserveButton;
-    private Button myReservationsButton;
+    private Button reserveButton, myReservationsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,34 +42,32 @@ public class HomeActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         mAuth = FirebaseAuth.getInstance();
+        credentialManager = CredentialManager.create(this);
 
-        credentialManager = CredentialManager.create(getBaseContext());
+        setupToolbar();
+        initializeUI();
+        setupButtonListeners();
+    }
 
+    private void setupToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
+        toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
-        if(mAuth.getCurrentUser() != null){
-            String username = mAuth.getCurrentUser().getDisplayName();
-            if(username != null)
-                Objects.requireNonNull(getSupportActionBar()).setTitle("Hello, " + mAuth.getCurrentUser().getDisplayName());
-            else
-                Objects.requireNonNull(getSupportActionBar()).setTitle("Hello");
-        }
-        else
-            Objects.requireNonNull(getSupportActionBar()).setTitle("Hello");
 
+        String username = (mAuth.getCurrentUser() != null) ? mAuth.getCurrentUser().getDisplayName() : null;
+        String greeting = (username != null) ? "Hello, " + username : "Hello";
+        Objects.requireNonNull(getSupportActionBar()).setTitle(greeting);
+    }
+
+    private void initializeUI() {
         progressBar = findViewById(R.id.progress_bar_sign_out);
-
         reserveButton = findViewById(R.id.reserve);
-        reserveButton.setOnClickListener(v -> {
-            ReserveRoomDialog dialog = new ReserveRoomDialog();
-            dialog.show(getSupportFragmentManager(), "ReserveRoomDialog");
-        });
-
         myReservationsButton = findViewById(R.id.myReservations);
-        myReservationsButton.setOnClickListener(v -> {
-            startActivity(new Intent(HomeActivity.this, MyReservationsActivity.class));
-        });
+    }
+
+    private void setupButtonListeners() {
+        reserveButton.setOnClickListener(v -> new ReserveRoomDialog().show(getSupportFragmentManager(), "ReserveRoomDialog"));
+        myReservationsButton.setOnClickListener(v -> startActivity(new Intent(this, MyReservationsActivity.class)));
     }
 
     @Override
@@ -85,45 +76,46 @@ public class HomeActivity extends AppCompatActivity {
         return true;
     }
 
-    public void onSignOutClick(MenuItem item){
+    public void onSignOutClick(MenuItem item) {
         signOut();
     }
 
     private void signOut() {
         findViewById(R.id.action_logout).setEnabled(false);
+        toggleUI(false);
 
-        progressBar.setVisibility(View.VISIBLE);
-
-        // Firebase sign out
         mAuth.signOut();
-        Log.d("test", "signing out");
+        Log.d(TAG, "Signing out...");
 
-        // When a user signs out, clear the current user credential state from all credential providers.
         ClearCredentialStateRequest clearRequest = new ClearCredentialStateRequest();
         credentialManager.clearCredentialStateAsync(
                 clearRequest,
                 new CancellationSignal(),
                 Executors.newSingleThreadExecutor(),
                 new CredentialManagerCallback<Void, ClearCredentialException>() {
-
                     @Override
                     public void onResult(@NonNull Void result) {
                         runOnUiThread(() -> {
-                            // Hide ProgressBar after the operation
-                            progressBar.setVisibility(View.GONE);
-                            // Re-enable the button
-                            findViewById(R.id.action_logout).setEnabled(true);
-                            // Navigate to the MainActivity
-                            Log.i("logOut", "success");
+                            toggleUI(true);
+                            Log.i(TAG, "Sign-out successful");
                             startActivity(new Intent(HomeActivity.this, MainActivity.class));
-                            finish();  // Finish current activity to prevent returning to it
+                            finish();
                         });
                     }
 
                     @Override
                     public void onError(@NonNull ClearCredentialException e) {
                         Log.e(TAG, "Couldn't clear user credentials: " + e.getLocalizedMessage());
+                        runOnUiThread(() -> toggleUI(true));
                     }
-                });
+                }
+        );
+    }
+
+    private void toggleUI(boolean enable) {
+        progressBar.setVisibility(enable ? View.GONE : View.VISIBLE);
+        reserveButton.setEnabled(enable);
+        myReservationsButton.setEnabled(enable);
+        findViewById(R.id.action_logout).setEnabled(enable);
     }
 }

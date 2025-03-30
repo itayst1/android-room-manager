@@ -2,7 +2,6 @@ package com.example.roommanager;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -16,24 +15,31 @@ import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 public class ReserveRoomDialog extends DialogFragment {
 
     private Spinner roomSpinner;
-    private TimePicker startTimePicker;
-    private NumberPicker durationPicker;
-    private Button reserveButton, cancelButton;
+    private NumberPicker hourPicker, minutePicker, durationPicker;
+    private Button reserveButton, cancelButton, selectDateButton;
+    private final Calendar selectedDateTime = Calendar.getInstance();
 
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
@@ -42,19 +48,32 @@ public class ReserveRoomDialog extends DialogFragment {
 
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Remove background corners
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         // Find views
-        Button selectDateButton = dialog.findViewById(R.id.date_button);
-        Button selectTimeButton = dialog.findViewById(R.id.time_button);
+        selectDateButton = dialog.findViewById(R.id.date_button);
+        hourPicker = dialog.findViewById(R.id.hour_picker);
+        minutePicker = dialog.findViewById(R.id.minute_picker);
+        durationPicker = dialog.findViewById(R.id.duration_picker);
+        roomSpinner = dialog.findViewById(R.id.room_spinner);
+        reserveButton = dialog.findViewById(R.id.reserve_button);
+        cancelButton = dialog.findViewById(R.id.cancel_button);
 
-// Variables to store selected date and time
+        reserveButton.setEnabled(false);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+        Context context = getContext();
+
         final Calendar selectedDateTime = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String defaultDate = dateFormat.format(selectedDateTime.getTime());
+        selectDateButton.setText(defaultDate); // Set initial date text
 
-// Handle Select Date button
+        // Handle Select Date button
         selectDateButton.setOnClickListener(v -> {
             int year = selectedDateTime.get(Calendar.YEAR);
             int month = selectedDateTime.get(Calendar.MONTH);
@@ -63,37 +82,30 @@ public class ReserveRoomDialog extends DialogFragment {
             DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(), (datePicker, selectedYear, selectedMonth, selectedDay) -> {
                 selectedDateTime.set(selectedYear, selectedMonth, selectedDay);
                 String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
-                selectDateButton.setText(formattedDate); // Update button text
+                selectDateButton.setText(formattedDate);
+                reserveButton.setEnabled(true);
             }, year, month, day);
 
             datePickerDialog.show();
         });
 
-// Handle Select Time button
-        selectTimeButton.setOnClickListener(v -> {
-            int hour = selectedDateTime.get(Calendar.HOUR_OF_DAY);
-            int minute = selectedDateTime.get(Calendar.MINUTE);
+        // Configure Hour Picker (7 AM - 5 PM)
+        String[] hours = {"07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17"};
+        hourPicker.setMinValue(0);
+        hourPicker.setMaxValue(hours.length - 1);
+        hourPicker.setDisplayedValues(hours);
 
-            TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(), (timePicker, selectedHour, selectedMinute) -> {
-                selectedDateTime.set(Calendar.HOUR_OF_DAY, selectedHour);
-                selectedDateTime.set(Calendar.MINUTE, selectedMinute);
+        // Configure Minute Picker (0, 15, 30, 45)
+        String[] minutes = {"00", "15", "30", "45"};
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(minutes.length - 1);
+        minutePicker.setDisplayedValues(minutes);
 
-                String formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute);
-                selectTimeButton.setText(formattedTime); // Update button text
-            }, hour, minute, false);
-
-            timePickerDialog.show();
-        });
-
-        // Initialize UI components
-        roomSpinner = view.findViewById(R.id.room_spinner);
-        durationPicker = view.findViewById(R.id.duration_picker);
-        reserveButton = view.findViewById(R.id.reserve_button);
-        cancelButton = view.findViewById(R.id.cancel_button);
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-
-        Context context = getContext();
+        // Configure Duration Picker (30 min to 4 hours)
+        String[] durations = {"30 min", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours"};
+        durationPicker.setMinValue(0);
+        durationPicker.setMaxValue(durations.length - 1);
+        durationPicker.setDisplayedValues(durations);
 
         // Populate Spinner with sample room data
         String[] rooms = {"Room 1", "Room 2", "Room 3", "Room 4", "Room 5"};
@@ -121,32 +133,25 @@ public class ReserveRoomDialog extends DialogFragment {
             }
         });
 
-        // Configure NumberPicker for duration (30 min to 4 hours)
-        String[] durations = {"30 min", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours"};
-        durationPicker.setMinValue(0);
-        durationPicker.setMaxValue(durations.length - 1);
-        durationPicker.setDisplayedValues(durations);
-
         // Handle Reserve button click
         reserveButton.setOnClickListener(v -> {
-            String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail(); // Get current user ID
+            String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
             String selectedRoom = roomSpinner.getSelectedItem().toString();
-            String startTime = selectTimeButton.getText().toString();
             String selectedDate = selectDateButton.getText().toString();
+            String selectedHour = hours[hourPicker.getValue()];
+            String selectedMinute = minutes[minutePicker.getValue()];
+            String selectedTime = selectedHour + ":" + selectedMinute;
             String selectedDuration = durations[durationPicker.getValue()];
 
             // Create a new reservation object
-            Reservation reservation = new Reservation(userEmail, startTime, selectedDuration);
-
+            Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
             dismiss();
 
             database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom + "/" + userId).setValue(reservation)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + startTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(context, "Failed to reserve room", Toast.LENGTH_SHORT).show();
-                    });
+                    .addOnSuccessListener(aVoid ->
+                            Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + selectedTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e ->
+                            Toast.makeText(context, "Failed to reserve room", Toast.LENGTH_SHORT).show());
         });
 
         // Handle Cancel button click
@@ -155,10 +160,17 @@ public class ReserveRoomDialog extends DialogFragment {
         return dialog;
     }
 
-    // Format time for display (e.g., 2:30 PM)
-    private String formatTime(int hour, int minute) {
-        String amPm = (hour < 12) ? "AM" : "PM";
-        int displayHour = (hour == 0 || hour == 12) ? 12 : hour % 12;
-        return String.format("%02d:%02d %s", displayHour, minute, amPm);
+    private int getDurationInMinutes(String selectedDuration) {
+        // Convert the duration string to minutes
+        int minutes = 0;
+        if (selectedDuration.contains("hour")) {
+            // Extract number of hours
+            double hours = Double.parseDouble(selectedDuration.split(" ")[0]);
+            minutes = (int) (hours * 60); // Convert hours to minutes
+        } else if (selectedDuration.contains("min")) {
+            // If it's a "30 min" option
+            minutes = 30;
+        }
+        return minutes;
     }
 }
