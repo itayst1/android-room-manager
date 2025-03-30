@@ -17,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
@@ -41,9 +42,10 @@ public class ReserveRoomDialog extends DialogFragment {
     private Button reserveButton, cancelButton, selectDateButton;
     private final Calendar selectedDateTime = Calendar.getInstance();
 
+    @NonNull
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_reserve_room, null);
+        View view = getLayoutInflater().inflate(R.layout.dialog_reserve_room, null);
         dialog.setContentView(view);
 
         if (dialog.getWindow() != null) {
@@ -51,7 +53,7 @@ public class ReserveRoomDialog extends DialogFragment {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
         // Find views
         selectDateButton = dialog.findViewById(R.id.date_button);
@@ -162,15 +164,25 @@ public class ReserveRoomDialog extends DialogFragment {
 
     private int getDurationInMinutes(String selectedDuration) {
         // Convert the duration string to minutes
-        int minutes = 0;
-        if (selectedDuration.contains("hour")) {
-            // Extract number of hours
-            double hours = Double.parseDouble(selectedDuration.split(" ")[0]);
-            minutes = (int) (hours * 60); // Convert hours to minutes
-        } else if (selectedDuration.contains("min")) {
-            // If it's a "30 min" option
-            minutes = 30;
+        switch (selectedDuration) {
+            case "30 min":
+                return 30;
+            case "1 hour":
+                return 60;
+            case "1.5 hours":
+                return 90;
+            case "2 hours":
+                return 120;
+            case "2.5 hours":
+                return 150;
+            case "3 hours":
+                return 180;
+            case "3.5 hours":
+                return 210;
+            case "4 hours":
+                return 240;
+            default:
+                return 0; // Default case
         }
-        return minutes;
     }
 }
