@@ -42,10 +42,10 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
         // Check if slot is reserved
         if (reservedSlots.get(position)) {
             holder.timeSlotStatus.setText("Reserved");
-            holder.timeSlotStatus.setBackgroundColor(Color.RED);
+            holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
         } else {
             holder.timeSlotStatus.setText("Available");
-            holder.timeSlotStatus.setBackgroundColor(Color.GREEN);
+            holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_green);
         }
         // Set a click listener on the time slot
         holder.timeSlotStatus.setOnClickListener(v -> {
