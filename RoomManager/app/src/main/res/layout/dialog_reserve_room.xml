@@ -15,51 +15,80 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingBottom="5dp">
 
                 <!-- Room Selection -->
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="8dp"
-                    android:text="Select Room"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingEnd="8dp">
 
-                <Spinner
-                    android:id="@+id/room_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="5dp"
-                    android:paddingBottom="5dp"
-                    android:popupTheme="@style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
-                    android:spinnerMode="dropdown"
-                    android:textColor="@color/white"
-                    android:background="@drawable/rounded_background"
-                    android:backgroundTint="#64AECA"
-                    android:theme="@style/Theme.AppCompat.Light" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Select Room"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Date"
-                    android:textColor="@color/black"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"> <!-- Set fixed height to match button -->
 
-                <Button
-                    android:id="@+id/date_button"
-                    android:layout_width="match_parent"
+                        <Spinner
+                            android:id="@+id/room_spinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/rounded_background"
+                            android:backgroundTint="#64AECA"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="40dp"
+                            android:popupBackground="@drawable/rounded_button_color"
+                            android:spinnerMode="dropdown"
+                            android:theme="@style/Theme.AppCompat.DayNight" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_arrow_down" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <!-- Date Selection -->
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:backgroundTint="#64AECA"
-                    android:text="Select Date"
-                    android:textColor="@color/white"
-                    android:textSize="12sp" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Date"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/date_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:backgroundTint="#64AECA"
+                        android:gravity="center"
+                        android:text="Select Date"
+                        android:textColor="@color/white"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
             </LinearLayout>
+
 
 
             <androidx.recyclerview.widget.RecyclerView
@@ -77,53 +106,56 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
                 android:gravity="center_vertical"
-                android:padding="8dp">
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:paddingBottom="5dp"
+                android:weightSum="2">
 
                 <!-- Time Pickers Section -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
                     android:background="@drawable/rounded_background"
                     android:backgroundTint="#64AECA"
-                    android:gravity="center_horizontal">
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:text="Start Time"
-                        android:textColor="@color/black"
+                        android:textColor="@color/white"
                         android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_gravity="center"/>
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center">
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
                         <NumberPicker
                             android:id="@+id/hour_picker"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:theme="@style/Theme.AppCompat.DayNight" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_gravity="center"
                             android:text=":"
-                            android:textColor="@color/black"
-                            android:textSize="40sp"
-                            android:layout_gravity="center" />
+                            android:textColor="@color/white"
+                            android:textSize="40sp" />
 
                         <NumberPicker
                             android:id="@+id/minute_picker"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:theme="@style/Theme.AppCompat.DayNight" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -143,14 +175,15 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:text="Reserve For"
-                        android:textColor="@color/black"
+                        android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <NumberPicker
                         android:id="@+id/duration_picker"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:theme="@style/Theme.AppCompat.DayNight" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -159,29 +192,28 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:orientation="horizontal"
-                android:paddingTop="10dp">
+                android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/cancel_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#64AECA"
-                android:text="Cancel"
-                android:textColor="@color/white"
-                android:textColorLink="@color/white"
-                android:layout_marginEnd="16dp" />
+                <Button
+                    android:id="@+id/cancel_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:backgroundTint="#64AECA"
+                    android:text="Cancel"
+                    android:textColor="@color/white"
+                    android:textColorLink="@color/white" />
 
-            <Button
-                android:id="@+id/reserve_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#64AECA"
-                android:text="Reserve"
-                android:textColor="@color/white"
-                android:textColorLink="@color/white" />
+                <Button
+                    android:id="@+id/reserve_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="#64AECA"
+                    android:text="Reserve"
+                    android:textColor="@color/white"
+                    android:textColorLink="@color/white" />
 
-        </LinearLayout>
+            </LinearLayout>
 
 </LinearLayout>
 </ScrollView>

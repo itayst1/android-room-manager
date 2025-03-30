@@ -7,6 +7,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -31,6 +34,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -51,6 +55,11 @@ public class ReserveRoomDialog extends DialogFragment {
     private TimeSlotAdapter timeSlotAdapter;
     private List<String> timeSlots = new ArrayList<>();
     private List<Boolean> reservedSlots = new ArrayList<>();
+
+    private String[] hours = {"07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17"};
+    private String[] minutes = {"00", "15", "30", "45"};
+    private String[] durations = {"30 min", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours"};
+    private String[] rooms = {"Room 1", "Room 2", "Room 3", "Room 4", "Room 5"};
 
     @NonNull
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -108,28 +117,23 @@ public class ReserveRoomDialog extends DialogFragment {
         });
 
         // Configure Hour Picker (7 AM - 5 PM)
-        String[] hours = {"07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17"};
         hourPicker.setMinValue(0);
         hourPicker.setMaxValue(hours.length - 1);
         hourPicker.setDisplayedValues(hours);
 
         // Configure Minute Picker (0, 15, 30, 45)
-        String[] minutes = {"00", "15", "30", "45"};
         minutePicker.setMinValue(0);
         minutePicker.setMaxValue(minutes.length - 1);
         minutePicker.setDisplayedValues(minutes);
 
         // Configure Duration Picker (30 min to 4 hours)
-        String[] durations = {"30 min", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours"};
         durationPicker.setMinValue(0);
         durationPicker.setMaxValue(durations.length - 1);
         durationPicker.setDisplayedValues(durations);
 
         // Populate Spinner with sample room data
-        String[] rooms = {"Room 1", "Room 2", "Room 3", "Room 4", "Room 5"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, rooms);
         roomSpinner.setAdapter(adapter);
-        roomSpinner.setPopupBackgroundResource(R.drawable.rounded_background);
         roomSpinner.post(() -> {
             View selectedView = roomSpinner.getSelectedView();
             if (selectedView instanceof TextView) {
@@ -193,15 +197,17 @@ public class ReserveRoomDialog extends DialogFragment {
             String selectedTime = selectedHour + ":" + selectedMinute;
             String selectedDuration = durations[durationPicker.getValue()];
 
-            // Create a new reservation object
-            Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
-            dismiss();
+            if(checkAvailability(selectedTime)){
+                // Create a new reservation object
+                Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
+                dismiss();
 
-            database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom + "/" + userId).setValue(reservation)
-                    .addOnSuccessListener(aVoid ->
-                            Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + selectedTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e ->
-                            Toast.makeText(context, "Failed to reserve room", Toast.LENGTH_SHORT).show());
+                database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom + "/" + userId).setValue(reservation)
+                        .addOnSuccessListener(aVoid ->
+                                Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + selectedTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e ->
+                                Toast.makeText(context, "Failed to reserve room", Toast.LENGTH_SHORT).show());
+            }
         });
 
         // Handle Cancel button click
@@ -249,7 +255,7 @@ public class ReserveRoomDialog extends DialogFragment {
                         String reservedTime = reservation.child("startTime").getValue(String.class);
                         String duration = reservation.child("duration").getValue(String.class);
                         reservedStart.set(Calendar.HOUR_OF_DAY, Integer.parseInt(reservedTime.split(":")[0]));
-                        reservedStart.set(Calendar.MINUTE, 0);
+                        reservedStart.set(Calendar.MINUTE, Integer.parseInt(reservedTime.split(":")[1]));
                         reservedStart.set(Calendar.SECOND, 0);
                         Calendar reservedEnd = (Calendar) reservedStart.clone();
                         reservedEnd.add(Calendar.MINUTE, getDurationInMinutes(duration));
@@ -270,6 +276,30 @@ public class ReserveRoomDialog extends DialogFragment {
                     timeSlotAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> Log.e("Firebase", "Failed to fetch reservations"));
+    }
+
+    private boolean checkAvailability(String reservationTime) {
+        Calendar current = Calendar.getInstance();
+        current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationTime.split(":")[0]));
+        current.set(Calendar.MINUTE, Integer.parseInt(reservationTime.split(":")[1]));
+        current.set(Calendar.SECOND, 0);
+        Calendar end = (Calendar) current.clone();
+        end.add(Calendar.MINUTE, getDurationInMinutes(durations[durationPicker.getValue()]));
+        end.set(Calendar.SECOND, 59);
+        Calendar checking = (Calendar) current.clone();
+        for(String ts: timeSlots){
+            String tsSplit = ts.split(" - ")[0];
+            checking.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
+            checking.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
+            checking.set(Calendar.SECOND, 30);
+            if(reservedSlots.get(timeSlots.indexOf(ts))){
+                if(checking.after(current) && checking.before(end)){
+                    Toast.makeText(getContext(), "Time slot already reserved", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private int getDurationInMinutes(String selectedDuration) {
