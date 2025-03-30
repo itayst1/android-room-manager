@@ -34,7 +34,6 @@ public class MyReservationsActivity extends AppCompatActivity {
     private Context context;
     private LinearLayout buttonContainer;
     private FirebaseDatabase database;
-    private String userId;
     private ProgressBar progressBar;
     Context style;
 
@@ -50,7 +49,6 @@ public class MyReservationsActivity extends AppCompatActivity {
 
         style = new ContextThemeWrapper(this, R.style.CustomDialogTheme);
 
-        userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         database = FirebaseDatabase.getInstance();
 
         progressBar = findViewById(R.id.progress_bar_load_reservations);
@@ -72,7 +70,7 @@ public class MyReservationsActivity extends AppCompatActivity {
                     for (DataSnapshot roomSnapshot : dateSnapshot.getChildren()) {
                         String roomName = roomSnapshot.getKey();
                         for (DataSnapshot reservationSnapshot : roomSnapshot.getChildren()) {
-                            if (Objects.equals(reservationSnapshot.getKey(), userId)) {
+                            if ((Objects.equals(reservationSnapshot.child("userEmail").getValue(String.class), FirebaseAuth.getInstance().getCurrentUser().getEmail()))) {
                                 String startTime = reservationSnapshot.child("startTime").getValue(String.class);
                                 String duration = reservationSnapshot.child("duration").getValue(String.class);
 

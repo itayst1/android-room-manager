@@ -202,7 +202,7 @@ public class ReserveRoomDialog extends DialogFragment {
                 Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
                 dismiss();
 
-                database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom + "/" + userId).setValue(reservation)
+                database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom).push().setValue(reservation)
                         .addOnSuccessListener(aVoid ->
                                 Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + selectedTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show())
                         .addOnFailureListener(e ->
@@ -246,7 +246,6 @@ public class ReserveRoomDialog extends DialogFragment {
         }
 
         // Fetch reserved slots from Firebase
-        Log.d("test", "reservations/" + selectDateButton.getText().toString().replace("/", "-") + "/" + roomSpinner.getSelectedItem().toString());
         FirebaseDatabase.getInstance().getReference("reservations/" + selectDateButton.getText().toString().replace("/", "-") + "/" + roomSpinner.getSelectedItem().toString())
                 .get()
                 .addOnSuccessListener(snapshot -> {
