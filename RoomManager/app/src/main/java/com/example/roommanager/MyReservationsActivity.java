@@ -6,7 +6,6 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -26,7 +25,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
@@ -108,7 +106,7 @@ public class MyReservationsActivity extends AppCompatActivity {
         Button button = new Button(context);
         button.setText(date + " - " + roomName + " - " + startTime + " (" + duration + ")");
         button.setAllCaps(false);
-        button.setBackgroundResource(R.drawable.rounded_button);
+        button.setBackgroundResource(R.drawable.rounded_background);
         button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#64AECA")));
         button.setTextColor(Color.WHITE);
         button.setTextSize(18);
@@ -136,7 +134,7 @@ public class MyReservationsActivity extends AppCompatActivity {
 
 
         AlertDialog dialog = builder.create();
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_button);
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
 
         dialog.show();
 
@@ -177,7 +175,7 @@ public class MyReservationsActivity extends AppCompatActivity {
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_button);
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
         dialog.show();
 
         // Manually change the button text color
