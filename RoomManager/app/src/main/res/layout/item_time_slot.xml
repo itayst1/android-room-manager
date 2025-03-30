@@ -8,7 +8,7 @@
 
     <!-- Time Slot Text -->
     <TextView
-        android:id="@+id/tv_time_slot"
+        android:id="@+id/time_slot_text_view"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
@@ -18,7 +18,7 @@
 
     <!-- Status Indicator -->
     <TextView
-        android:id="@+id/tv_status"
+        android:id="@+id/time_slot_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="4dp"

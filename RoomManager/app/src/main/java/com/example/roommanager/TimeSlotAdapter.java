@@ -1,49 +1,58 @@
 package com.example.roommanager;
 
-import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
 
-public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.ViewHolder> {
+public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSlotViewHolder> {
 
-    private final List<String> timeSlots; // List of time slots
+    private List<String> timeSlots;
+    private OnTimeSlotClickListener listener;
     private final List<Boolean> reservedSlots; // List to track if a slot is reserved
-    private final Context context;
 
-    public TimeSlotAdapter(Context context, List<String> timeSlots, List<Boolean> reservedSlots) {
-        this.context = context;
+    public interface OnTimeSlotClickListener {
+        void onTimeSlotClick(String timeSlot);
+    }
+
+    public TimeSlotAdapter(List<String> timeSlots, OnTimeSlotClickListener listener, List<Boolean> reservedSlots) {
         this.timeSlots = timeSlots;
+        this.listener = listener;
         this.reservedSlots = reservedSlots;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_time_slot, parent, false);
-        return new ViewHolder(view);
+    public TimeSlotViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_time_slot, parent, false);
+        return new TimeSlotViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.tvTimeSlot.setText(timeSlots.get(position));
-        holder.tvTimeSlot.setTextColor(Color.WHITE);
-        holder.tvStatus.setBackgroundResource(R.drawable.rounded_background);
+    public void onBindViewHolder(@NonNull TimeSlotViewHolder holder, int position) {
+        String timeSlot = timeSlots.get(position);
+        holder.timeSlotTextView.setText(timeSlots.get(position));
+        holder.timeSlotTextView.setTextColor(Color.WHITE);
         // Check if slot is reserved
         if (reservedSlots.get(position)) {
-            holder.tvStatus.setText("Reserved");
-            holder.tvStatus.setBackgroundColor(Color.RED);
+            holder.timeSlotStatus.setText("Reserved");
+            holder.timeSlotStatus.setBackgroundColor(Color.RED);
         } else {
-            holder.tvStatus.setText("Available");
-            holder.tvStatus.setBackgroundColor(Color.GREEN);
+            holder.timeSlotStatus.setText("Available");
+            holder.timeSlotStatus.setBackgroundColor(Color.GREEN);
         }
+        // Set a click listener on the time slot
+        holder.timeSlotStatus.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onTimeSlotClick(timeSlot);
+            }
+        });
     }
 
     @Override
@@ -51,13 +60,13 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.ViewHo
         return timeSlots.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTimeSlot, tvStatus;
+    public static class TimeSlotViewHolder extends RecyclerView.ViewHolder {
+        TextView timeSlotTextView, timeSlotStatus;
 
-        public ViewHolder(@NonNull View itemView) {
+        public TimeSlotViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTimeSlot = itemView.findViewById(R.id.tv_time_slot);
-            tvStatus = itemView.findViewById(R.id.tv_status);
+            timeSlotTextView = itemView.findViewById(R.id.time_slot_text_view);
+            timeSlotStatus = itemView.findViewById(R.id.time_slot_status);
         }
     }
 }
