@@ -4,6 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#FFFF0000</color>
     <color name="green">#FF00FF00</color>
-    <color name="primaryColor">#2789B6</color> <!-- Background Color -->
-    <color name="primaryDarkColor">#64AECA</color> <!-- Toolbar and Button Color -->
+    <color name="backgroundColor">#2789B6</color> <!-- Background Color -->
+    <color name="buttonColor">#64AECA</color> <!-- Toolbar and Button Color -->
 </resources>

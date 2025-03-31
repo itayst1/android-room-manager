@@ -4,13 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2789B6">
+    android:background="@color/backgroundColor">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
-        android:background="#64AECA"
+        android:background="@color/buttonColor"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -36,7 +36,7 @@
         android:id="@+id/reserve"
         android:layout_width="170dp"
         android:layout_height="100dp"
-        android:backgroundTint="#64AECA"
+        android:backgroundTint="@color/buttonColor"
         android:text="Reserve room"
         android:textAllCaps="false"
         android:textColor="@color/white"
@@ -54,7 +54,7 @@
         android:id="@+id/myReservations"
         android:layout_width="170dp"
         android:layout_height="100dp"
-        android:backgroundTint="#64AECA"
+        android:backgroundTint="@color/buttonColor"
         android:text="My reservations"
         android:textAllCaps="false"
         android:textColor="@color/white"

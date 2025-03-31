@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2789B6">
+    android:background="@color/backgroundColor">
 
     <ProgressBar
         android:id="@+id/progress_bar_load_reservations"
@@ -22,7 +22,7 @@
         android:id="@+id/homeButton"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:backgroundTint="#64AECA"
+        android:backgroundTint="@color/buttonColor"
         android:elevation="10dp"
         android:onClick="onHomeButtonClick"
         android:paddingTop="15dp"

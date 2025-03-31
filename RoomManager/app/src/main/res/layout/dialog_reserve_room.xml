@@ -45,7 +45,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@drawable/rounded_background"
-                        android:backgroundTint="#64AECA"
+                        android:backgroundTint="@color/buttonColor"
                         android:paddingStart="12dp"
                         android:paddingEnd="40dp"
                         android:popupBackground="@drawable/rounded_button_color"
@@ -80,7 +80,7 @@
                     android:id="@+id/date_button"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:backgroundTint="#64AECA"
+                    android:backgroundTint="@color/buttonColor"
                     android:gravity="center"
                     android:text="Select Date"
                     android:textColor="@color/white"
@@ -95,7 +95,7 @@
             android:layout_width="match_parent"
             android:layout_height="280dp"
             android:background="@drawable/rounded_background"
-            android:backgroundTint="#64AECA"
+            android:backgroundTint="@color/buttonColor"
             android:fadeScrollbars="false"
             android:nestedScrollingEnabled="true"
             android:paddingTop="10dp"
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/rounded_background"
-                android:backgroundTint="#64AECA"
+                android:backgroundTint="@color/buttonColor"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -165,7 +165,7 @@
                 android:layout_marginLeft="10dp"
                 android:layout_weight="1"
                 android:background="@drawable/rounded_background"
-                android:backgroundTint="#64AECA"
+                android:backgroundTint="@color/buttonColor"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -198,7 +198,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
-                android:backgroundTint="#64AECA"
+                android:backgroundTint="@color/buttonColor"
                 android:text="Cancel"
                 android:textColor="@color/white"
                 android:textColorLink="@color/white" />
@@ -207,7 +207,7 @@
                 android:id="@+id/reserve_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#64AECA"
+                android:backgroundTint="@color/buttonColor"
                 android:text="Reserve"
                 android:textColor="@color/white"
                 android:textColorLink="@color/white" />
