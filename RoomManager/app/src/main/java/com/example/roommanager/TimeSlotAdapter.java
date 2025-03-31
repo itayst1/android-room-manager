@@ -37,7 +37,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
 
     @Override
     public void onBindViewHolder(@NonNull TimeSlotViewHolder holder, int position) {
-        if(reservedSlots.isEmpty() || timeSlots.isEmpty()){
+        if (reservedSlots.isEmpty() || timeSlots.isEmpty()) {
             return;
         }
         String timeSlot = timeSlots.get(position);
@@ -47,7 +47,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
         if (reservedSlots.get(position).equals("Reserved")) {
             holder.timeSlotStatus.setText("Reserved");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
-        } else if (reservedSlots.get(position).equals("Available")){
+        } else if (reservedSlots.get(position).equals("Available")) {
             holder.timeSlotStatus.setText("Available");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_green);
         } else {

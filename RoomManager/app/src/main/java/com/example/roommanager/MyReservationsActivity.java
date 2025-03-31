@@ -115,7 +115,7 @@ public class MyReservationsActivity extends AppCompatActivity {
         return button;
     }
 
-    private TextView createTextView(String text){
+    private TextView createTextView(String text) {
         TextView textView = new TextView(context);
         textView.setText(text);
         textView.setTextColor(Color.WHITE);
@@ -172,7 +172,8 @@ public class MyReservationsActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(this, "Failed to delete reservation", Toast.LENGTH_SHORT).show();
                         }
-                    });                })
+                    });
+                })
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();

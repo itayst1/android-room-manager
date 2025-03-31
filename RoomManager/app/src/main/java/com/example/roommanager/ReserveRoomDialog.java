@@ -89,7 +89,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         final Calendar selectedDateTime = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String defaultDate = dateFormat.format(selectedDateTime.getTime());
-        if(defaultDate.split("/")[1].charAt(0) == '0'){
+        if (defaultDate.split("/")[1].charAt(0) == '0') {
             defaultDate = defaultDate.substring(0, 3) + defaultDate.substring(4);
         }
         selectDateButton.setText(defaultDate); // Set initial date text
@@ -153,7 +153,8 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
         fetchReservedTimes();
@@ -199,7 +200,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             String selectedTime = selectedHour + ":" + selectedMinute;
             String selectedDuration = durations[durationPicker.getValue()];
 
-            if(checkAvailability(selectedTime)){
+            if (checkAvailability(selectedTime)) {
                 // Create a new reservation object
                 Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
                 dismiss();
@@ -248,10 +249,9 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 // Add the time range to the timeSlots list
                 String timeRange = startTime + " - " + endTime;
 
-                if(Calendar.getInstance().before(check)) {
+                if (Calendar.getInstance().before(check)) {
                     reservedSlots.add("Available");
-                }
-                else {
+                } else {
                     reservedSlots.add("Past");
                 }
                 timeSlots.add(timeRange);
@@ -305,18 +305,18 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         Calendar reservationEnd = (Calendar) currentReservations.clone();
         reservationEnd.add(Calendar.MINUTE, getDurationInMinutes(durations[durationPicker.getValue()]));
         reservationEnd.set(Calendar.SECOND, 59);
-        if(Calendar.getInstance().after(currentReservations)) {
+        if (Calendar.getInstance().after(currentReservations)) {
             Toast.makeText(getContext(), "Time slot is before now", Toast.LENGTH_SHORT).show();
             return false;
         }
         Calendar checking = (Calendar) currentReservations.clone();
         checking.set(Calendar.SECOND, 30);
-        for(String ts: timeSlots){
+        for (String ts : timeSlots) {
             String tsSplit = ts.split(" - ")[0];
             checking.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
             checking.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
-            if(reservedSlots.get(timeSlots.indexOf(ts)).equals("Reserved")){
-                if(checking.after(currentReservations) && checking.before(reservationEnd)){
+            if (reservedSlots.get(timeSlots.indexOf(ts)).equals("Reserved")) {
+                if (checking.after(currentReservations) && checking.before(reservationEnd)) {
                     Toast.makeText(getContext(), "Time slot already reserved", Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -352,7 +352,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
 
     @Override
     public void onTimeSlotClick(String timeSlot) {
-        if(reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Past"))
+        if (reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Past"))
             return;
         // Parse the clicked time slot
         String[] times = timeSlot.split(" - ");
