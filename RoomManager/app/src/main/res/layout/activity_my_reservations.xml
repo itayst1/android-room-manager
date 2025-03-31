@@ -27,7 +27,7 @@
         android:onClick="onHomeButtonClick"
         android:paddingTop="15dp"
         android:paddingBottom="15dp"
-        android:text="back"
+        android:text="Back"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textColorLink="@color/white"

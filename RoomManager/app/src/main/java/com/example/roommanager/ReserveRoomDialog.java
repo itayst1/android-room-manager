@@ -114,9 +114,10 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 selectedDateTime.set(selectedYear, selectedMonth, selectedDay);
                 String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
                 selectDateButton.setText(formattedDate);
+
                 fetchReservedTimes();
             }, year, month, day);
-
+            datePickerDialog.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
             datePickerDialog.show();
         });
 
