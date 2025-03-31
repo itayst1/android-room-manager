@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/time_slot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="8dp"
-    android:gravity="center_vertical">
+    android:padding="8dp">
 
     <!-- Time Slot Text -->
     <TextView
         android:id="@+id/time_slot_text_view"
         android:layout_width="0dp"
-        android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="07:00 AM - 07:30 AM"
-        android:textSize="16sp"
-        android:textColor="@color/black"/>
+        android:layout_weight="1"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
 
     <!-- Status Indicator -->
     <TextView
         android:id="@+id/time_slot_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button_color"
         android:padding="4dp"
-        android:text="Available"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:textColor="@android:color/white"
         android:textSize="14sp"
-        android:textStyle="bold"
-        android:background="@drawable/rounded_background"
-        android:textColor="@android:color/white"/>
+        android:textStyle="bold" />
 </LinearLayout>

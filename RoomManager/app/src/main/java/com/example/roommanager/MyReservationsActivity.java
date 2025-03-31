@@ -73,21 +73,15 @@ public class MyReservationsActivity extends AppCompatActivity {
                             if ((Objects.equals(reservationSnapshot.child("userEmail").getValue(String.class), FirebaseAuth.getInstance().getCurrentUser().getEmail()))) {
                                 String startTime = reservationSnapshot.child("startTime").getValue(String.class);
                                 String duration = reservationSnapshot.child("duration").getValue(String.class);
-
+//                                buttonContainer.addView(createTextView(date));
                                 Button reservationButton = createReservationButton(date, roomName, startTime, duration, reservationSnapshot.getRef());
-
                                 buttonContainer.addView(reservationButton);
                             }
                         }
                     }
                 }
                 if (buttonContainer.getChildCount() == 0) {
-                    TextView noReservationsText = new TextView(context);
-                    noReservationsText.setText("No reservations found");
-                    noReservationsText.setTextColor(Color.WHITE);
-                    noReservationsText.setTextSize(30);
-                    noReservationsText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                    buttonContainer.addView(noReservationsText);
+                    buttonContainer.addView(createTextView("No reservations found"));
                 }
                 progressBar.setVisibility(View.GONE);
             }
@@ -119,6 +113,15 @@ public class MyReservationsActivity extends AppCompatActivity {
         });
         button.setOnClickListener(view -> showReservationDetails(date, roomName, startTime, duration, reservationRef));
         return button;
+    }
+
+    private TextView createTextView(String text){
+        TextView textView = new TextView(context);
+        textView.setText(text);
+        textView.setTextColor(Color.WHITE);
+        textView.setTextSize(30);
+        textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        return textView;
     }
 
     private void showReservationDetails(String date, String roomName, String startTime, String duration, DatabaseReference reservationRef) {

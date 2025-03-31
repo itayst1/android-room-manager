@@ -55,7 +55,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     private RecyclerView timeSlotsRecycler;
     private TimeSlotAdapter timeSlotAdapter;
     private List<String> timeSlots = new ArrayList<>();
-    private List<Boolean> reservedSlots = new ArrayList<>();
+    private List<String> reservedSlots = new ArrayList<>();
     private TimeSlotAdapter adapter;
 
     private String[] hours = {"07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17"};
@@ -74,7 +74,8 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
-        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        Context context = getContext();
 
         // Find views
         selectDateButton = dialog.findViewById(R.id.date_button);
@@ -85,17 +86,6 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         reserveButton = dialog.findViewById(R.id.reserve_button);
         cancelButton = dialog.findViewById(R.id.cancel_button);
 
-        timeSlotsRecycler = view.findViewById(R.id.time_slots_recycler);
-        // Set the RecyclerView layout manager and adapter
-        timeSlotsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        List<String> timeSlots = getTimeSlots(); // Your time slots list
-        adapter = new TimeSlotAdapter(timeSlots, this, reservedSlots);
-        timeSlotsRecycler.setAdapter(adapter);
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-
-        Context context = getContext();
-
         final Calendar selectedDateTime = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String defaultDate = dateFormat.format(selectedDateTime.getTime());
@@ -103,6 +93,13 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             defaultDate = defaultDate.substring(0, 3) + defaultDate.substring(4);
         }
         selectDateButton.setText(defaultDate); // Set initial date text
+
+        timeSlotsRecycler = view.findViewById(R.id.time_slots_recycler);
+        // Set the RecyclerView layout manager and adapter
+        timeSlotsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+        List<String> timeSlots = getTimeSlots(); // Your time slots list
+        adapter = new TimeSlotAdapter(timeSlots, this, reservedSlots);
+        timeSlotsRecycler.setAdapter(adapter);
 
         // Handle Select Date button
         selectDateButton.setOnClickListener(v -> {
@@ -242,63 +239,84 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 String startTime = String.format("%02d:%02d", hour, minute);
                 String endTime = String.format("%02d:%02d", endHour, endMinute);
 
+                int year = Integer.parseInt(selectDateButton.getText().toString().split("/")[2]);
+                int month = Integer.parseInt(selectDateButton.getText().toString().split("/")[1]) - 1;
+                int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
+                Calendar check = (Calendar) Calendar.getInstance().clone();
+                check.set(year, month, day, hour, minute, 0);
+
                 // Add the time range to the timeSlots list
                 String timeRange = startTime + " - " + endTime;
-                Log.d("time range", timeRange);
-                timeSlots.add(timeRange);
 
-                reservedSlots.add(false); // Initially all are available
+                if(Calendar.getInstance().before(check)) {
+                    reservedSlots.add("Available");
+                }
+                else {
+                    reservedSlots.add("Past");
+                }
+                timeSlots.add(timeRange);
             }
         }
 
-        // Fetch reserved slots from Firebase
-        FirebaseDatabase.getInstance().getReference("reservations/" + selectDateButton.getText().toString().replace("/", "-") + "/" + roomSpinner.getSelectedItem().toString())
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    for (DataSnapshot reservation : snapshot.getChildren()) {
-                        Calendar reservedStart = Calendar.getInstance();
-                        String reservedTime = reservation.child("startTime").getValue(String.class);
-                        String duration = reservation.child("duration").getValue(String.class);
-                        reservedStart.set(Calendar.HOUR_OF_DAY, Integer.parseInt(reservedTime.split(":")[0]));
-                        reservedStart.set(Calendar.MINUTE, Integer.parseInt(reservedTime.split(":")[1]));
-                        reservedStart.set(Calendar.SECOND, 0);
-                        Calendar reservedEnd = (Calendar) reservedStart.clone();
-                        reservedEnd.add(Calendar.MINUTE, getDurationInMinutes(duration));
-                        reservedEnd.set(Calendar.SECOND, 29);
-                        Calendar current = (Calendar) reservedStart.clone();
-                        current.set(Calendar.SECOND, 30);
-
-                        for(String ts: timeSlots){
-                            String tsSplit = ts.split(" - ")[0];
-                            current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
-                            current.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
-                            if(reservedStart.before(current) && reservedEnd.after(current)){
-                                reservedSlots.set(timeSlots.indexOf(ts), true);
+        if (!timeSlots.isEmpty()) {
+            // Fetch reserved slots from Firebase
+            FirebaseDatabase.getInstance().getReference("reservations/" + selectDateButton.getText().toString().replace("/", "-") + "/" + roomSpinner.getSelectedItem().toString())
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        for (DataSnapshot reservation : snapshot.getChildren()) {
+                            String reservedTime = reservation.child("startTime").getValue(String.class);
+                            int year = Integer.parseInt(selectDateButton.getText().toString().split("/")[2]);
+                            int month = Integer.parseInt(selectDateButton.getText().toString().split("/")[1]) - 1;
+                            int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
+                            int reservedHour = Integer.parseInt(reservedTime.split(":")[0]);
+                            int reservedMinute = Integer.parseInt(reservedTime.split(":")[1]);
+                            String duration = reservation.child("duration").getValue(String.class);
+                            Calendar reservedStart = (Calendar) Calendar.getInstance().clone();
+                            reservedStart.set(year, month, day, reservedHour, reservedMinute, 0);
+                            Calendar reservedEnd = (Calendar) reservedStart.clone();
+                            reservedEnd.add(Calendar.MINUTE, getDurationInMinutes(duration));
+                            reservedEnd.set(Calendar.SECOND, 29);
+                            Calendar current = (Calendar) reservedStart.clone();
+                            current.set(Calendar.SECOND, 30);
+                            for (String ts : timeSlots) {
+                                String tsSplit = ts.split(" - ")[0];
+                                current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
+                                current.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
+                                if ((reservedStart.before(current) && reservedEnd.after(current))) {
+                                    reservedSlots.set(timeSlots.indexOf(ts), "Reserved");
+                                }
                             }
                         }
-                    }
-                    // Update UI
-                    adapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> Log.e("Firebase", "Failed to fetch reservations"));
+                        // Update UI
+                        adapter.notifyDataSetChanged();
+                    })
+                    .addOnFailureListener(e -> Log.e("Firebase", "Failed to fetch reservations"));
+        }
     }
 
     private boolean checkAvailability(String reservationTime) {
-        Calendar current = Calendar.getInstance();
-        current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationTime.split(":")[0]));
-        current.set(Calendar.MINUTE, Integer.parseInt(reservationTime.split(":")[1]));
-        current.set(Calendar.SECOND, 0);
-        Calendar end = (Calendar) current.clone();
-        end.add(Calendar.MINUTE, getDurationInMinutes(durations[durationPicker.getValue()]));
-        end.set(Calendar.SECOND, 59);
-        Calendar checking = (Calendar) current.clone();
+        Calendar currentReservations = (Calendar) Calendar.getInstance().clone();
+        int year = Integer.parseInt(selectDateButton.getText().toString().split("/")[2]);
+        int month = Integer.parseInt(selectDateButton.getText().toString().split("/")[1]) - 1;
+        int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
+        int reserveHour = Integer.parseInt(reservationTime.split(":")[0]);
+        int reserveMinute = Integer.parseInt(reservationTime.split(":")[1]);
+        currentReservations.set(year, month, day, reserveHour, reserveMinute, 0);
+        Calendar reservationEnd = (Calendar) currentReservations.clone();
+        reservationEnd.add(Calendar.MINUTE, getDurationInMinutes(durations[durationPicker.getValue()]));
+        reservationEnd.set(Calendar.SECOND, 59);
+        if(Calendar.getInstance().after(currentReservations)) {
+            Toast.makeText(getContext(), "Time slot is before now", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        Calendar checking = (Calendar) currentReservations.clone();
+        checking.set(Calendar.SECOND, 30);
         for(String ts: timeSlots){
             String tsSplit = ts.split(" - ")[0];
             checking.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
             checking.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
-            checking.set(Calendar.SECOND, 30);
-            if(reservedSlots.get(timeSlots.indexOf(ts))){
-                if(checking.after(current) && checking.before(end)){
+            if(reservedSlots.get(timeSlots.indexOf(ts)).equals("Reserved")){
+                if(checking.after(currentReservations) && checking.before(reservationEnd)){
                     Toast.makeText(getContext(), "Time slot already reserved", Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -324,10 +342,8 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
 
                 String startTime = String.format("%02d:%02d", hour, minute);
                 String endTime = String.format("%02d:%02d", endHour, endMinute);
-
                 // Add the time range to the timeSlots list
                 String timeRange = startTime + " - " + endTime;
-                Log.d("time range", timeRange);
                 timeSlots.add(timeRange);
             }
         }
@@ -336,6 +352,8 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
 
     @Override
     public void onTimeSlotClick(String timeSlot) {
+        if(reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Past"))
+            return;
         // Parse the clicked time slot
         String[] times = timeSlot.split(" - ");
         String startTime = times[0];

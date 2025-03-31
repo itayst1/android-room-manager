@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,13 +16,13 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
 
     private List<String> timeSlots;
     private OnTimeSlotClickListener listener;
-    private final List<Boolean> reservedSlots; // List to track if a slot is reserved
+    private final List<String> reservedSlots; // List to track if a slot is reserved
 
     public interface OnTimeSlotClickListener {
         void onTimeSlotClick(String timeSlot);
     }
 
-    public TimeSlotAdapter(List<String> timeSlots, OnTimeSlotClickListener listener, List<Boolean> reservedSlots) {
+    public TimeSlotAdapter(List<String> timeSlots, OnTimeSlotClickListener listener, List<String> reservedSlots) {
         this.timeSlots = timeSlots;
         this.listener = listener;
         this.reservedSlots = reservedSlots;
@@ -36,19 +37,25 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
 
     @Override
     public void onBindViewHolder(@NonNull TimeSlotViewHolder holder, int position) {
+        if(reservedSlots.isEmpty() || timeSlots.isEmpty()){
+            return;
+        }
         String timeSlot = timeSlots.get(position);
         holder.timeSlotTextView.setText(timeSlots.get(position));
         holder.timeSlotTextView.setTextColor(Color.WHITE);
         // Check if slot is reserved
-        if (reservedSlots.get(position)) {
+        if (reservedSlots.get(position).equals("Reserved")) {
             holder.timeSlotStatus.setText("Reserved");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
-        } else {
+        } else if (reservedSlots.get(position).equals("Available")){
             holder.timeSlotStatus.setText("Available");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_green);
+        } else {
+            holder.timeSlotStatus.setText("Time past");
+            holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
         }
         // Set a click listener on the time slot
-        holder.timeSlotStatus.setOnClickListener(v -> {
+        holder.timeSlot.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onTimeSlotClick(timeSlot);
             }
@@ -62,11 +69,13 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
 
     public static class TimeSlotViewHolder extends RecyclerView.ViewHolder {
         TextView timeSlotTextView, timeSlotStatus;
+        LinearLayout timeSlot;
 
         public TimeSlotViewHolder(@NonNull View itemView) {
             super(itemView);
             timeSlotTextView = itemView.findViewById(R.id.time_slot_text_view);
             timeSlotStatus = itemView.findViewById(R.id.time_slot_status);
+            timeSlot = itemView.findViewById(R.id.time_slot);
         }
     }
 }
