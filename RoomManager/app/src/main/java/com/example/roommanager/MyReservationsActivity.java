@@ -73,7 +73,6 @@ public class MyReservationsActivity extends AppCompatActivity {
                             if ((Objects.equals(reservationSnapshot.child("userEmail").getValue(String.class), FirebaseAuth.getInstance().getCurrentUser().getEmail()))) {
                                 String startTime = reservationSnapshot.child("startTime").getValue(String.class);
                                 String duration = reservationSnapshot.child("duration").getValue(String.class);
-//                                buttonContainer.addView(createTextView(date));
                                 Button reservationButton = createReservationButton(date, roomName, startTime, duration, reservationSnapshot.getRef());
                                 buttonContainer.addView(reservationButton);
                             }
@@ -98,8 +97,7 @@ public class MyReservationsActivity extends AppCompatActivity {
         Button button = new Button(context);
         button.setText(date + " - " + roomName + " - " + startTime + " (" + duration + ")");
         button.setAllCaps(false);
-        button.setBackgroundResource(R.drawable.rounded_background);
-        button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#64AECA")));
+        button.setBackgroundResource(R.drawable.rounded_button_color);
         button.setTextColor(Color.WHITE);
         button.setTextSize(18);
         button.setPadding(10, 50, 10, 50);
@@ -118,7 +116,7 @@ public class MyReservationsActivity extends AppCompatActivity {
     private TextView createTextView(String text) {
         TextView textView = new TextView(context);
         textView.setText(text);
-        textView.setTextColor(Color.WHITE);
+        textView.setTextColor(getColor(R.color.white));
         textView.setTextSize(30);
         textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         return textView;
