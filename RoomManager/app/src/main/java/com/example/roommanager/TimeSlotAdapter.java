@@ -17,6 +17,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
     private List<String> timeSlots;
     private OnTimeSlotClickListener listener;
     private final List<String> reservedSlots; // List to track if a slot is reserved
+    private List<Integer> room;
 
     public interface OnTimeSlotClickListener {
         void onTimeSlotClick(String timeSlot);

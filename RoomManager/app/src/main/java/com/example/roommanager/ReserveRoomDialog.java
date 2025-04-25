@@ -31,14 +31,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -56,164 +60,33 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     private TimeSlotAdapter timeSlotAdapter;
     private List<String> timeSlots = new ArrayList<>();
     private List<String> reservedSlots = new ArrayList<>();
+    private List<Integer> availableRoom = new ArrayList<>();
     private TimeSlotAdapter adapter;
 
     private String[] hours = {"07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17"};
     private String[] minutes = {"00", "15", "30", "45"};
     private String[] durations = {"30 min", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3 hours", "3.5 hours", "4 hours"};
-    private String[] rooms = {"Room 1", "Room 2", "Room 3", "Room 4", "Room 5"};
+
+    private Context context;
 
     @NonNull
+    @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         View view = getLayoutInflater().inflate(R.layout.dialog_reserve_room, null);
         dialog.setContentView(view);
+        setupDialogWindow(dialog);
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        }
-
+        context = getContext();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        Context context = getContext();
 
-        // Find views
-        selectDateButton = dialog.findViewById(R.id.date_button);
-        hourPicker = dialog.findViewById(R.id.hour_picker);
-        minutePicker = dialog.findViewById(R.id.minute_picker);
-        durationPicker = dialog.findViewById(R.id.duration_picker);
-        roomSpinner = dialog.findViewById(R.id.room_spinner);
-        reserveButton = dialog.findViewById(R.id.reserve_button);
-        cancelButton = dialog.findViewById(R.id.cancel_button);
+        initViews(dialog);
+        setupPickers();
+        setupDateButton();
+        setupRoomSpinner();
+        setupTimeSlotsRecycler();
 
-        final Calendar selectedDateTime = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String defaultDate = dateFormat.format(selectedDateTime.getTime());
-        if (defaultDate.split("/")[1].charAt(0) == '0') {
-            defaultDate = defaultDate.substring(0, 3) + defaultDate.substring(4);
-        }
-        selectDateButton.setText(defaultDate); // Set initial date text
-
-        timeSlotsRecycler = view.findViewById(R.id.time_slots_recycler);
-        // Set the RecyclerView layout manager and adapter
-        timeSlotsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        List<String> timeSlots = getTimeSlots(); // Your time slots list
-        adapter = new TimeSlotAdapter(timeSlots, this, reservedSlots);
-        timeSlotsRecycler.setAdapter(adapter);
-
-        // Handle Select Date button
-        selectDateButton.setOnClickListener(v -> {
-            int year = selectedDateTime.get(Calendar.YEAR);
-            int month = selectedDateTime.get(Calendar.MONTH);
-            int day = selectedDateTime.get(Calendar.DAY_OF_MONTH);
-
-            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(), (datePicker, selectedYear, selectedMonth, selectedDay) -> {
-                selectedDateTime.set(selectedYear, selectedMonth, selectedDay);
-                String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
-                selectDateButton.setText(formattedDate);
-
-                fetchReservedTimes();
-            }, year, month, day);
-            datePickerDialog.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
-            datePickerDialog.show();
-        });
-
-        // Configure Hour Picker (7 AM - 5 PM)
-        hourPicker.setMinValue(0);
-        hourPicker.setMaxValue(hours.length - 1);
-        hourPicker.setDisplayedValues(hours);
-
-        // Configure Minute Picker (0, 15, 30, 45)
-        minutePicker.setMinValue(0);
-        minutePicker.setMaxValue(minutes.length - 1);
-        minutePicker.setDisplayedValues(minutes);
-
-        // Configure Duration Picker (30 min to 4 hours)
-        durationPicker.setMinValue(0);
-        durationPicker.setMaxValue(durations.length - 1);
-        durationPicker.setDisplayedValues(durations);
-
-        // Populate Spinner with sample room data
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, rooms);
-        roomSpinner.setAdapter(adapter);
-        roomSpinner.post(() -> {
-            View selectedView = roomSpinner.getSelectedView();
-            if (selectedView instanceof TextView) {
-                ((TextView) selectedView).setTextColor(Color.WHITE);
-            }
-        });
-
-        roomSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (view instanceof TextView) {
-                    ((TextView) view).setTextColor(Color.WHITE);
-                }
-                fetchReservedTimes();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-
-        fetchReservedTimes();
-
-        timeSlotsRecycler.addItemDecoration(new RecyclerView.ItemDecoration() {
-            @Override
-            public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-                super.onDraw(c, parent, state);
-
-                int childCount = parent.getChildCount();
-                int height = parent.getHeight();
-                float fadeHeight = height * 0.03f; // 15% fade zone at top & bottom (adjustable)
-
-                // Ensure that the first and last items are always visible
-                for (int i = 0; i < childCount; i++) {
-                    View child = parent.getChildAt(i);
-                    float itemY = child.getY();
-                    float itemBottom = itemY + child.getHeight();
-                    float alpha = 1.0f;
-
-                    // Apply fade effect to the top of the list
-                    if (itemY < fadeHeight) {
-                        alpha = Math.max(0.0f, itemY / fadeHeight);
-                    }
-                    // Apply fade effect to the bottom of the list
-                    else if (itemBottom > height - fadeHeight) {
-                        alpha = Math.max(0.0f, (height - itemBottom) / fadeHeight);
-                    }
-
-                    // Apply alpha to the item view
-                    child.setAlpha(alpha);
-                }
-            }
-        });
-
-        // Handle Reserve button click
-        reserveButton.setOnClickListener(v -> {
-            String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
-            String selectedRoom = roomSpinner.getSelectedItem().toString();
-            String selectedDate = selectDateButton.getText().toString();
-            String selectedHour = hours[hourPicker.getValue()];
-            String selectedMinute = minutes[minutePicker.getValue()];
-            String selectedTime = selectedHour + ":" + selectedMinute;
-            String selectedDuration = durations[durationPicker.getValue()];
-
-            if (checkAvailability(selectedTime)) {
-                // Create a new reservation object
-                Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
-                dismiss();
-
-                database.getReference("reservations/" + selectedDate.replace("/", "-") + "/" + selectedRoom).push().setValue(reservation)
-                        .addOnSuccessListener(aVoid ->
-                                Toast.makeText(context, selectedRoom + " reserved on " + selectedDate + " at " + selectedTime + " for " + selectedDuration, Toast.LENGTH_SHORT).show())
-                        .addOnFailureListener(e ->
-                                Toast.makeText(context, "Failed to reserve room", Toast.LENGTH_SHORT).show());
-            }
-        });
-
-        // Handle Cancel button click
+        reserveButton.setOnClickListener(v -> handleReservation(database, context));
         cancelButton.setOnClickListener(v -> dismiss());
 
         return dialog;
@@ -254,6 +127,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 } else {
                     reservedSlots.add("Past");
                 }
+                availableRoom.add(0);
                 timeSlots.add(timeRange);
             }
         }
@@ -263,27 +137,32 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             FirebaseDatabase.getInstance().getReference("reservations/" + selectDateButton.getText().toString().replace("/", "-") + "/" + roomSpinner.getSelectedItem().toString())
                     .get()
                     .addOnSuccessListener(snapshot -> {
-                        for (DataSnapshot reservation : snapshot.getChildren()) {
-                            String reservedTime = reservation.child("startTime").getValue(String.class);
-                            int year = Integer.parseInt(selectDateButton.getText().toString().split("/")[2]);
-                            int month = Integer.parseInt(selectDateButton.getText().toString().split("/")[1]) - 1;
-                            int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
-                            int reservedHour = Integer.parseInt(reservedTime.split(":")[0]);
-                            int reservedMinute = Integer.parseInt(reservedTime.split(":")[1]);
-                            String duration = reservation.child("duration").getValue(String.class);
-                            Calendar reservedStart = (Calendar) Calendar.getInstance().clone();
-                            reservedStart.set(year, month, day, reservedHour, reservedMinute, 0);
-                            Calendar reservedEnd = (Calendar) reservedStart.clone();
-                            reservedEnd.add(Calendar.MINUTE, getDurationInMinutes(duration));
-                            reservedEnd.set(Calendar.SECOND, 29);
-                            Calendar current = (Calendar) reservedStart.clone();
-                            current.set(Calendar.SECOND, 30);
-                            for (String ts : timeSlots) {
-                                String tsSplit = ts.split(" - ")[0];
-                                current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
-                                current.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
-                                if ((reservedStart.before(current) && reservedEnd.after(current))) {
-                                    reservedSlots.set(timeSlots.indexOf(ts), "Reserved");
+                        for (DataSnapshot roomSnapshot : snapshot.getChildren()) {
+                            for(DataSnapshot reservation : roomSnapshot.getChildren()) {
+                                String reservedTime = reservation.child("startTime").getValue(String.class);
+                                int year = Integer.parseInt(selectDateButton.getText().toString().split("/")[2]);
+                                int month = Integer.parseInt(selectDateButton.getText().toString().split("/")[1]) - 1;
+                                int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
+                                int reservedHour = Integer.parseInt(reservedTime.split(":")[0]);
+                                int reservedMinute = Integer.parseInt(reservedTime.split(":")[1]);
+                                String duration = reservation.child("duration").getValue(String.class);
+                                Calendar reservedStart = (Calendar) Calendar.getInstance().clone();
+                                reservedStart.set(year, month, day, reservedHour, reservedMinute, 0);
+                                Calendar reservedEnd = (Calendar) reservedStart.clone();
+                                reservedEnd.add(Calendar.MINUTE, getDurationInMinutes(duration));
+                                reservedEnd.set(Calendar.SECOND, 29);
+                                Calendar current = (Calendar) reservedStart.clone();
+                                current.set(Calendar.SECOND, 30);
+                                for (String ts : timeSlots) {
+                                    String tsSplit = ts.split(" - ")[0];
+                                    current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
+                                    current.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
+                                    if ((reservedStart.before(current) && reservedEnd.after(current))) {
+                                        reservedSlots.set(timeSlots.indexOf(ts), "Reserved");
+                                    }
+                                    else {
+                                        availableRoom.set(timeSlots.indexOf(ts), Integer.valueOf(Objects.requireNonNull(roomSnapshot.getKey())));
+                                    }
                                 }
                             }
                         }
@@ -391,4 +270,245 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 return 0; // Default case
         }
     }
+
+    private void setupDialogWindow(Dialog dialog) {
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+    }
+
+    private void initViews(Dialog dialog) {
+        selectDateButton = dialog.findViewById(R.id.date_button);
+        hourPicker = dialog.findViewById(R.id.hour_picker);
+        minutePicker = dialog.findViewById(R.id.minute_picker);
+        durationPicker = dialog.findViewById(R.id.duration_picker);
+        roomSpinner = dialog.findViewById(R.id.room_spinner);
+        reserveButton = dialog.findViewById(R.id.reserve_button);
+        cancelButton = dialog.findViewById(R.id.cancel_button);
+        timeSlotsRecycler = dialog.findViewById(R.id.time_slots_recycler);
+    }
+
+    private void setupPickers() {
+        hourPicker.setMinValue(0);
+        hourPicker.setMaxValue(hours.length - 1);
+        hourPicker.setDisplayedValues(hours);
+
+        minutePicker.setMinValue(0);
+        minutePicker.setMaxValue(minutes.length - 1);
+        minutePicker.setDisplayedValues(minutes);
+
+        durationPicker.setMinValue(0);
+        durationPicker.setMaxValue(durations.length - 1);
+        durationPicker.setDisplayedValues(durations);
+    }
+
+    private void setupDateButton() {
+        final Calendar selectedDateTime = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/M/yyyy", Locale.getDefault());
+        selectDateButton.setText(dateFormat.format(selectedDateTime.getTime()));
+
+        selectDateButton.setOnClickListener(v -> {
+            int year = selectedDateTime.get(Calendar.YEAR);
+            int month = selectedDateTime.get(Calendar.MONTH);
+            int day = selectedDateTime.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(), (view, y, m, d) -> {
+                selectedDateTime.set(y, m, d);
+                selectDateButton.setText(d + "/" + (m + 1) + "/" + y);
+                fetchReservedTimes();
+            }, year, month, day);
+
+            datePickerDialog.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
+            datePickerDialog.show();
+        });
+    }
+
+    private void setupRoomSpinner() {
+        DatabaseReference roomsRef = FirebaseDatabase.getInstance().getReference("settings/rooms");
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item);
+        roomSpinner.setAdapter(adapter);
+
+        roomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<String> roomTypes = new ArrayList<>();
+
+                for (DataSnapshot typeSnapshot : snapshot.getChildren()) {
+                    String roomType = typeSnapshot.getKey();
+                    if (roomType != null) {
+                        roomTypes.add(roomType);
+                    }
+                }
+                 Collections.reverse(roomTypes);
+
+                adapter.clear();
+                adapter.addAll(roomTypes);
+                adapter.notifyDataSetChanged();
+
+                // Optional: select the first item and update UI
+                if (!roomTypes.isEmpty()) {
+                    roomSpinner.setSelection(0);
+                    fetchReservedTimes();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load room types", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        roomSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (view instanceof TextView) {
+                    ((TextView) view).setTextColor(Color.WHITE);
+                }
+                fetchReservedTimes();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        roomSpinner.post(() -> {
+            View selectedView = roomSpinner.getSelectedView();
+            if (selectedView instanceof TextView) {
+                ((TextView) selectedView).setTextColor(Color.WHITE);
+            }
+        });
+    }
+
+
+    private void setupTimeSlotsRecycler() {
+        timeSlotsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new TimeSlotAdapter(getTimeSlots(), this, reservedSlots);
+        timeSlotsRecycler.setAdapter(adapter);
+
+        timeSlotsRecycler.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                int height = parent.getHeight();
+                float fadeHeight = height * 0.03f;
+
+                for (int i = 0; i < parent.getChildCount(); i++) {
+                    View child = parent.getChildAt(i);
+                    float itemY = child.getY(), itemBottom = itemY + child.getHeight(), alpha = 1f;
+
+                    if (itemY < fadeHeight)
+                        alpha = Math.max(0f, itemY / fadeHeight);
+                    else if (itemBottom > height - fadeHeight)
+                        alpha = Math.max(0f, (height - itemBottom) / fadeHeight);
+
+                    child.setAlpha(alpha);
+                }
+            }
+        });
+    }
+
+    private void handleReservation(FirebaseDatabase database, Context context) {
+        String email = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        String roomType = roomSpinner.getSelectedItem().toString();
+        String date = selectDateButton.getText().toString();
+        String hour = hours[hourPicker.getValue()];
+        String minute = minutes[minutePicker.getValue()];
+        String time = hour + ":" + minute;
+        String duration = durations[durationPicker.getValue()];
+
+        if (checkAvailability(time)) {
+            Reservation reservation = new Reservation(email, time, duration);
+            dismiss();
+
+            DatabaseReference roomsRef = database.getReference("settings/rooms/" + roomType);
+            roomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    List<String> availableRooms = new ArrayList<>();
+                    for (DataSnapshot roomSnapshot : snapshot.getChildren()) {
+                        availableRooms.add(roomSnapshot.getKey()); // room number (e.g., "1", "2", etc.)
+                    }
+
+                    checkAvailableRoomAndReserve(availableRooms);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(context, "Failed to load room list", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    private void checkAvailableRoomAndReserve(List<String> roomNumbers) {
+        String selectedDate = selectDateButton.getText().toString().replace("/", "-");
+        String selectedTime = hours[hourPicker.getValue()] + ":" + minutes[minutePicker.getValue()];
+        String selectedDuration = durations[durationPicker.getValue()];
+        String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+        for (String room : roomNumbers) {
+            DatabaseReference roomReservationsRef = FirebaseDatabase.getInstance().getReference("reservations/" + selectedDate + "/" + room);
+            roomReservationsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!isTimeConflict(snapshot, selectedTime, selectedDuration)) {
+                        // Reserve this room
+                        Reservation reservation = new Reservation(userEmail, selectedTime, selectedDuration);
+                        roomReservationsRef.push().setValue(reservation)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(context, "Room " + room + " reserved!", Toast.LENGTH_SHORT).show();
+                                    dismiss();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(context, "Reservation failed", Toast.LENGTH_SHORT).show());
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
+            break; // Only try to reserve one room (first available)
+        }
+    }
+
+    private boolean isTimeConflict(DataSnapshot snapshot, String newStartTime, String newDuration) {
+        int newStart = timeToMinutes(newStartTime);
+        int newEnd = newStart + parseDuration(newDuration);
+
+        for (DataSnapshot reservationSnapshot : snapshot.getChildren()) {
+            String reservedStartTime = reservationSnapshot.child("time").getValue(String.class);
+            String reservedDuration = reservationSnapshot.child("duration").getValue(String.class);
+
+            if (reservedStartTime == null || reservedDuration == null) continue;
+
+            int reservedStart = timeToMinutes(reservedStartTime);
+            int reservedEnd = reservedStart + parseDuration(reservedDuration);
+
+            // Check for time overlap
+            if (newStart < reservedEnd && newEnd > reservedStart) {
+                return true; // Conflict found
+            }
+        }
+        return false; // No conflicts
+    }
+
+    private int timeToMinutes(String time) {
+        String[] parts = time.split(":");
+        int hour = Integer.parseInt(parts[0]);
+        int minute = Integer.parseInt(parts[1]);
+        return hour * 60 + minute;
+    }
+
+    private int parseDuration(String durationStr) {
+        if (durationStr.contains("hour")) {
+            double hours = Double.parseDouble(durationStr.replace(" hours", "").replace(" hour", ""));
+            return (int) (hours * 60);
+        } else if (durationStr.contains("minute")) {
+            return Integer.parseInt(durationStr.replace(" minutes", "").replace(" minute", ""));
+        }
+        return 0;
+    }
+
 }
