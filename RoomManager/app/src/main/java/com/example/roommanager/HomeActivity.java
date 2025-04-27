@@ -80,6 +80,10 @@ public class HomeActivity extends AppCompatActivity {
         signOut();
     }
 
+    public void onSignOutClick(View view) {
+        signOut();
+    }
+
     private void signOut() {
         findViewById(R.id.action_logout).setEnabled(false);
         toggleUI(false);
