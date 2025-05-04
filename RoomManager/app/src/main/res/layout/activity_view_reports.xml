@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/admin_view_reports_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/backgroundColor">
+
+    <Button
+        android:id="@+id/btnBack"
+        android:text="Back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:backgroundTint="@color/buttonColor"
+        android:textColor="@color/white"
+        />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/reports_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User Reports"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"
+        android:textColor="@color/white"/>
+
+    <!-- RecyclerView for showing list of reports -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/reportsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp" />
+
+</LinearLayout>

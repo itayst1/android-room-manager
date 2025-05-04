@@ -22,6 +22,7 @@ import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.exceptions.ClearCredentialException;
 
+import com.example.roommanager.Dialogs.ReportDialog;
 import com.example.roommanager.R;
 import com.example.roommanager.Dialogs.ReserveRoomDialog;
 import com.google.firebase.auth.FirebaseAuth;
@@ -94,11 +95,11 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void onReportClick(View view){
-        new ReserveRoomDialog().show(getSupportFragmentManager(), "ReserveRoomDialog");
+        new ReportDialog().show(getSupportFragmentManager(), "ReserveRoomDialog");
     }
 
     public void onReportClick(MenuItem item){
-        new ReserveRoomDialog().show(getSupportFragmentManager(), "ReserveRoomDialog");
+        new ReportDialog().show(getSupportFragmentManager(), "ReserveRoomDialog");
     }
 
     private void signOut() {

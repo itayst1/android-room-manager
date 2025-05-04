@@ -1,6 +1,7 @@
 package com.example.roommanager.Activities;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -55,12 +56,9 @@ public class AdminPanelActivity extends AppCompatActivity {
         // Button actions
         btnAddAdmin.setOnClickListener(v -> showAddAdminDialog());
 
-        btnViewReports.setOnClickListener(v -> {
-            // TODO: Launch ViewReportsActivity
-            Toast.makeText(this, "Report viewer not implemented yet", Toast.LENGTH_SHORT).show();
-        });
+        btnViewReports.setOnClickListener(v -> {startActivity(new Intent(AdminPanelActivity.this, ViewReportsActivity.class));});
 
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> startActivity(new Intent(AdminPanelActivity.this, HomeActivity.class)));
     }
 
     private void loadAdmins() {

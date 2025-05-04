@@ -5,35 +5,55 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="20dp"
-    android:background="@drawable/dialog_background">
+    android:background="@drawable/rounded_background">
 
     <EditText
         android:id="@+id/reportEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="top|start"
         android:hint="Describe the issue..."
         android:inputType="textMultiLine"
         android:minLines="4"
-        android:gravity="top|start"
-        android:background="@drawable/edittext_background"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:textColor="@color/black"
+        android:textColorHighlight="@color/black"
+        android:textColorHint="@color/black"
+        android:textColorLink="@color/black" />
 
+    <!-- Empty ImageView for image preview with no image background -->
     <ImageView
         android:id="@+id/imagePreview"
-        android:layout_width="match_parent"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
         android:layout_height="200dp"
-        android:layout_marginTop="10dp"
-        android:scaleType="centerCrop"
-        android:visibility="gone"
-        android:background="#EEE" />
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/darker_gray" />
 
+
+    <!-- Select Image Button -->
     <Button
         android:id="@+id/selectImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Select Image"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/buttonColor"
+        android:textColor="@color/white"/>
 
+    <!-- Open Camera Button -->
+    <Button
+        android:id="@+id/openCameraButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Open Camera"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/buttonColor"
+        android:textColor="@color/white"/>
+
+    <!-- Send and Cancel Buttons -->
     <Button
         android:id="@+id/sendReportButton"
         android:layout_width="match_parent"
@@ -51,5 +71,4 @@
         android:layout_marginTop="5dp"
         android:backgroundTint="#F44336"
         android:textColor="#FFF" />
-
 </LinearLayout>

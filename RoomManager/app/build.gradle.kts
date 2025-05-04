@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
     alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -64,4 +65,7 @@ dependencies {
     implementation(libs.googleid)
 
     implementation(libs.firebase.database)
+
+    implementation(libs.glide)
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
 }
