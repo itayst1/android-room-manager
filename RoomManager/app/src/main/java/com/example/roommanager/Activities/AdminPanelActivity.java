@@ -1,7 +1,9 @@
 package com.example.roommanager.Activities;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +32,7 @@ public class AdminPanelActivity extends AppCompatActivity {
     private AdminAdapter adminAdapter;
     private List<String> adminList = new ArrayList<>();
     private DatabaseReference adminsRef;
+    private Context style;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,9 @@ public class AdminPanelActivity extends AppCompatActivity {
         adminAdapter = new AdminAdapter(adminList, this::removeAdmin);
         adminRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         adminRecyclerView.setAdapter(adminAdapter);
+
+        style = new ContextThemeWrapper(this, R.style.CustomDialogTheme);
+
 
         // Load data
         loadAdmins();
@@ -87,20 +94,45 @@ public class AdminPanelActivity extends AppCompatActivity {
         EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
 
-        new AlertDialog.Builder(this)
-                .setTitle("Add Admin")
-                .setMessage("Enter admin email:")
-                .setView(input)
-                .setPositiveButton("Add", (dialog, which) -> {
-                    String email = input.getText().toString().trim();
-                    if (!email.isEmpty()) {
-                        String key = encodeEmailKey(email);
-                        adminsRef.child(key).setValue(true);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(style);
+        builder.setTitle("Add Admin");
+        builder.setMessage("Enter admin email:");
+        builder.setView(input);
+        builder.setPositiveButton("Add", (dialog, which) -> {
+            String email = input.getText().toString().trim();
+            if (!email.isEmpty()) {
+                String key = encodeEmailKey(email);
+                adminsRef.child(key).setValue(true);
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+        dialog.show();
+
+        // Set EditText text color programmatically
+        input.setTextColor(Color.BLACK);  // Set the text color to black
+        input.setHintTextColor(Color.GRAY);  // Set the hint text color to gray
+
+        // Manually change the button text color
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        // Set button text color to black
+        if (positiveButton != null) {
+            positiveButton.setTextColor(0xFF000000);
+        }
+        if (negativeButton != null) {
+            negativeButton.setTextColor(0xFF000000);
+        }
+        if (neutralButton != null) {
+            neutralButton.setTextColor(0xFF000000);
+        }
     }
+
+
 
     private void removeAdmin(String email) {
         new AlertDialog.Builder(this)
