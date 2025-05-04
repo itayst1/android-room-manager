@@ -1,4 +1,4 @@
-package com.example.roommanager;
+package com.example.roommanager.Dialogs;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -24,6 +24,9 @@ import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.roommanager.Adapters.TimeSlotAdapter;
+import com.example.roommanager.R;
+import com.example.roommanager.Reservation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

@@ -48,7 +48,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.3" />
+        app:layout_constraintVertical_bias="0.25" />
 
     <Button
         android:id="@+id/myReservations"
@@ -66,6 +66,26 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.6" />
+        app:layout_constraintVertical_bias="0.5" />
+
+    <Button
+        android:id="@+id/admin_panel"
+        android:layout_width="170dp"
+        android:layout_height="100dp"
+        android:backgroundTint="@color/buttonColor"
+        android:cursorVisible="false"
+        android:text="Admin panel"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textColorLink="@color/white"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:cornerRadius="26dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.75" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

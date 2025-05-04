@@ -1,4 +1,4 @@
-package com.example.roommanager;
+package com.example.roommanager.Activities;
 
 import static android.content.ContentValues.TAG;
 
@@ -22,7 +22,13 @@ import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.exceptions.ClearCredentialException;
 
+import com.example.roommanager.R;
+import com.example.roommanager.Dialogs.ReserveRoomDialog;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -32,7 +38,7 @@ public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private CredentialManager credentialManager;
     private ProgressBar progressBar;
-    private Button reserveButton, myReservationsButton;
+    private Button reserveButton, myReservationsButton, adminButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +69,14 @@ public class HomeActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar_sign_out);
         reserveButton = findViewById(R.id.reserve);
         myReservationsButton = findViewById(R.id.myReservations);
+        adminButton = findViewById(R.id.admin_panel);
+        checkUserStatus();
     }
 
     private void setupButtonListeners() {
         reserveButton.setOnClickListener(v -> new ReserveRoomDialog().show(getSupportFragmentManager(), "ReserveRoomDialog"));
         myReservationsButton.setOnClickListener(v -> startActivity(new Intent(this, MyReservationsActivity.class)));
+        adminButton.setOnClickListener(v -> startActivity(new Intent(this, AdminPanelActivity.class)));
     }
 
     @Override
@@ -82,6 +91,14 @@ public class HomeActivity extends AppCompatActivity {
 
     public void onSignOutClick(View view) {
         signOut();
+    }
+
+    public void onReportClick(View view){
+        new ReserveRoomDialog().show(getSupportFragmentManager(), "ReserveRoomDialog");
+    }
+
+    public void onReportClick(MenuItem item){
+        new ReserveRoomDialog().show(getSupportFragmentManager(), "ReserveRoomDialog");
     }
 
     private void signOut() {
@@ -121,5 +138,26 @@ public class HomeActivity extends AppCompatActivity {
         reserveButton.setEnabled(enable);
         myReservationsButton.setEnabled(enable);
         findViewById(R.id.action_logout).setEnabled(enable);
+    }
+
+    private void checkUserStatus(){
+        String email = Objects.requireNonNull(mAuth.getCurrentUser()).getEmail();
+        FirebaseDatabase.getInstance().getReference("settings/admins").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot adminSnapshot : snapshot.getChildren()) {
+                    if(Objects.equals(adminSnapshot.getKey().replace("_", "."), email)){
+                        adminButton.setVisibility(View.VISIBLE);
+                        adminButton.setSystemUiVisibility(View.VISIBLE);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                adminButton.setVisibility(View.GONE);
+                adminButton.setSystemUiVisibility(View.GONE);
+            }
+        });
     }
 }

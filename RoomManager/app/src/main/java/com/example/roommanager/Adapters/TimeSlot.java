@@ -1,4 +1,4 @@
-package com.example.roommanager;
+package com.example.roommanager.Adapters;
 
 public class TimeSlot {
     String time;

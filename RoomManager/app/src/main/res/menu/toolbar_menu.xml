@@ -5,6 +5,7 @@
     <item
         android:id="@+id/action_report"
         android:icon="@drawable/ic_report"
+        android:onClick="onReportClick"
         app:actionLayout="@layout/report_menu_item"
         android:title="report"
         app:showAsAction="always"
