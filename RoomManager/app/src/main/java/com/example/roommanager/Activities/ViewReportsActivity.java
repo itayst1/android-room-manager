@@ -25,6 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ViewReportsActivity extends AppCompatActivity {
 
@@ -90,7 +91,7 @@ public class ViewReportsActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancel", null);
 
         AlertDialog dialog = builder.create();
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+        Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(R.drawable.rounded_background);
 
         dialog.show();
 

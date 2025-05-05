@@ -22,6 +22,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -106,30 +108,41 @@ public class ReportDialog extends DialogFragment {
 
     private void openCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, CAMERA_REQUEST);
+        cameraLauncher.launch(intent);
     }
 
     private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imagePickerLauncher.launch(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            Intent data = result.getData();
+                            if (data != null && data.getData() != null) {
+                                imageUri = data.getData();
+                                imagePreview.setImageURI(imageUri);
+                            }
+                        }
+                    });
 
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            if (requestCode == PICK_IMAGE_REQUEST && data.getData() != null) {
-                imageUri = data.getData();
-                imagePreview.setImageURI(imageUri); // <-- shows gallery image
-            } else if (requestCode == CAMERA_REQUEST && data.getExtras() != null) {
+    // Register Camera
+    private final ActivityResultLauncher<Intent>cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+    result -> {
+        if (result.getResultCode() == Activity.RESULT_OK) {
+            Intent data = result.getData();
+            if (data != null && data.getExtras() != null) {
                 Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                imagePreview.setImageBitmap(bitmap); // <-- shows camera image
+                imagePreview.setImageBitmap(bitmap);
                 cameraBitmap = bitmap;
             }
         }
-    }
+    });
+
+
 
     private Uri getImageUriFromBitmap(Bitmap bitmap) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
