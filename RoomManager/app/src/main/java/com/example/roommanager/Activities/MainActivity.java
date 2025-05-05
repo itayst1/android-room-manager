@@ -20,6 +20,7 @@ import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 
 import com.example.roommanager.R;
+import com.example.roommanager.creds;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private void launchCredentialManager() {
         // [START create_credential_manager_request]
         // Instantiate a Google sign-in request
-        GetSignInWithGoogleOption googleIdOption = new GetSignInWithGoogleOption.Builder(creds.default_web_client_id).build();
+        GetSignInWithGoogleOption googleIdOption = new GetSignInWithGoogleOption.Builder(com.example.roommanager.creds.default_web_client_id).build();
 
         // Create the Credential Manager request
         GetCredentialRequest request = new GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build();
