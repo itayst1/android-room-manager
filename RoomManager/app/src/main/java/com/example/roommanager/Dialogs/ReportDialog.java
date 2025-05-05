@@ -41,11 +41,8 @@ import java.util.Map;
 
 public class ReportDialog extends DialogFragment {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int CAMERA_REQUEST = 2;
     private static final int STORAGE_PERMISSION_REQUEST = 101;
     private static final int CAMERA_PERMISSION_REQUEST = 102;
-
 
     private EditText reportEditText;
     private ImageView imagePreview;
@@ -128,20 +125,18 @@ public class ReportDialog extends DialogFragment {
                         }
                     });
 
-    // Register Camera
-    private final ActivityResultLauncher<Intent>cameraLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-    result -> {
-        if (result.getResultCode() == Activity.RESULT_OK) {
-            Intent data = result.getData();
-            if (data != null && data.getExtras() != null) {
-                Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                imagePreview.setImageBitmap(bitmap);
-                cameraBitmap = bitmap;
-            }
-        }
-    });
-
+    private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null && data.getExtras() != null) {
+                        Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                        imagePreview.setImageBitmap(bitmap);
+                        cameraBitmap = bitmap;
+                    }
+                }
+            });
 
 
     private Uri getImageUriFromBitmap(Bitmap bitmap) {
@@ -215,5 +210,4 @@ public class ReportDialog extends DialogFragment {
             Toast.makeText(getContext(), "Permission denied.", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

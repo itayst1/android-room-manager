@@ -443,7 +443,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 break;
             }
         }
-        if(!didReserve.get()){
+        if (!didReserve.get()) {
             Toast.makeText(context, "Reservation failed", Toast.LENGTH_SHORT).show();
         }
     }
