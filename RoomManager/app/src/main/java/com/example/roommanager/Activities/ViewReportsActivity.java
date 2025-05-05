@@ -6,8 +6,11 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,7 +43,7 @@ public class ViewReportsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         reportList = new ArrayList<>();
-        reportsAdapter = new ReportsAdapter(reportList);
+        reportsAdapter = new ReportsAdapter(reportList, this::removeReport);
         recyclerView.setAdapter(reportsAdapter);
 
         backButton = findViewById(R.id.btnBack);
@@ -53,12 +56,13 @@ public class ViewReportsActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 reportList.clear();
                 for (DataSnapshot reportSnapshot : dataSnapshot.getChildren()) {
+                    String reportId = reportSnapshot.getKey();
                     String userEmail = reportSnapshot.child("userEmail").getValue(String.class);
                     String message = reportSnapshot.child("message").getValue(String.class);
                     String imageUrl = reportSnapshot.child("imageUrl").getValue(String.class);
 
                     // Create Report object and add it to the list
-                    reportList.add(new Report(userEmail, message, imageUrl));
+                    reportList.add(new Report(reportId, userEmail, message, imageUrl));
                 }
 
                 // Notify adapter of the new data
@@ -70,5 +74,40 @@ public class ViewReportsActivity extends AppCompatActivity {
                 Log.e("ViewReportsActivity", "Error loading reports: " + databaseError.getMessage());
             }
         });
+    }
+
+    private void removeReport(String reportId) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.CustomDialogTheme));
+        builder.setTitle("Mark as resolved");
+        builder.setMessage("Are you sure you want to mark this report as resolved?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            FirebaseDatabase.getInstance().getReference("reports").child(reportId).removeValue()
+                    .addOnSuccessListener(aVoid ->
+                            Toast.makeText(this, "Report marked as resolved", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e ->
+                            Toast.makeText(this, "Failed to mark report as resolved", Toast.LENGTH_SHORT).show());
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+
+        dialog.show();
+
+        // Manually change the button text color
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        // Set button text color to black
+        if (positiveButton != null) {
+            positiveButton.setTextColor(0xFF000000);
+        }
+        if (negativeButton != null) {
+            negativeButton.setTextColor(0xFF000000);
+        }
+        if (neutralButton != null) {
+            neutralButton.setTextColor(0xFF000000);
+        }
     }
 }

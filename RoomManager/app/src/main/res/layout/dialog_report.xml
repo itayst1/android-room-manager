@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="top|start"
-        android:hint="Describe the issue..."
+        android:hint="Describe the issue (required)"
         android:inputType="textMultiLine"
         android:minLines="4"
         android:padding="10dp"
@@ -38,7 +38,7 @@
         android:id="@+id/selectImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Image"
+        android:text="Select Image (optional)"
         android:layout_marginTop="10dp"
         android:backgroundTint="@color/buttonColor"
         android:textColor="@color/white"/>
@@ -48,7 +48,7 @@
         android:id="@+id/openCameraButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Open Camera"
+        android:text="Open Camera (optional)"
         android:layout_marginTop="10dp"
         android:backgroundTint="@color/buttonColor"
         android:textColor="@color/white"/>

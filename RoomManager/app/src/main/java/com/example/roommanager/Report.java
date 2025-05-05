@@ -1,15 +1,21 @@
 package com.example.roommanager;
 
 public class Report {
+    private String reportId;
     private String userEmail;
     private String message;
     private String imageUrl;
 
     // Constructor
-    public Report(String userEmail, String message, String imageUrl) {
+    public Report(String reportId, String userEmail, String message, String imageUrl) {
+        this.reportId = reportId;
         this.userEmail = userEmail;
         this.message = message;
         this.imageUrl = imageUrl;
+    }
+
+    public String getReportId() {
+        return reportId;
     }
 
     // Getters

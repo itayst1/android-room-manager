@@ -7,8 +7,18 @@
     android:background="@drawable/rounded_background"
     android:layout_marginBottom="8dp">
 
+    <ImageButton
+        android:id="@+id/btnRemove"
+        android:src="@drawable/ic_mark_as_done"
+        android:contentDescription="Remove"
+        android:layout_gravity="right"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <TextView
         android:id="@+id/reportEmail"
+        android:text="no email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@android:color/black"
@@ -17,6 +27,7 @@
 
     <TextView
         android:id="@+id/reportMessage"
+        android:text="no message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@android:color/black"

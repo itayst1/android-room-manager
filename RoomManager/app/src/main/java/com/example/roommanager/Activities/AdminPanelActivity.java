@@ -1,5 +1,6 @@
 package com.example.roommanager.Activities;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -63,7 +64,9 @@ public class AdminPanelActivity extends AppCompatActivity {
         // Button actions
         btnAddAdmin.setOnClickListener(v -> showAddAdminDialog());
 
-        btnViewReports.setOnClickListener(v -> {startActivity(new Intent(AdminPanelActivity.this, ViewReportsActivity.class));});
+        btnViewReports.setOnClickListener(v -> {
+            startActivity(new Intent(AdminPanelActivity.this, ViewReportsActivity.class));
+        });
 
         btnBack.setOnClickListener(v -> startActivity(new Intent(AdminPanelActivity.this, HomeActivity.class)));
     }
@@ -133,21 +136,40 @@ public class AdminPanelActivity extends AppCompatActivity {
     }
 
 
-
     private void removeAdmin(String email) {
-        new AlertDialog.Builder(this)
-                .setTitle("Remove Admin")
-                .setMessage("Are you sure you want to remove admin:\n" + email + "?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    String key = encodeEmailKey(email);
-                    adminsRef.child(key).removeValue()
-                            .addOnSuccessListener(aVoid ->
-                                    Toast.makeText(this, "Admin removed", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(this, "Failed to remove admin", Toast.LENGTH_SHORT).show());
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.CustomDialogTheme));
+        builder.setTitle("Remove Admin");
+        builder.setMessage("Are you sure you want to remove admin:\n" + email + "?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            String key = encodeEmailKey(email);
+            adminsRef.child(key).removeValue()
+                    .addOnSuccessListener(aVoid ->
+                            Toast.makeText(this, "Admin removed", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e ->
+                            Toast.makeText(this, "Failed to remove admin", Toast.LENGTH_SHORT).show());
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+
+        dialog.show();
+
+        // Manually change the button text color
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        // Set button text color to black
+        if (positiveButton != null) {
+            positiveButton.setTextColor(0xFF000000);
+        }
+        if (negativeButton != null) {
+            negativeButton.setTextColor(0xFF000000);
+        }
+        if (neutralButton != null) {
+            neutralButton.setTextColor(0xFF000000);
+        }
     }
 
     private String encodeEmailKey(String email) {

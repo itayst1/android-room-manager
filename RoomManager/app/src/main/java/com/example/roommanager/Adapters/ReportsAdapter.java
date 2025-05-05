@@ -6,6 +6,7 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,13 +20,15 @@ import com.example.roommanager.ReportViewHolder;
 
 import java.util.List;
 
-public class ReportsAdapter extends RecyclerView.Adapter<ReportViewHolder> {
+public class ReportsAdapter extends RecyclerView.Adapter<ReportsAdapter.ReportViewHolder> {
 
     private List<Report> reportList;
+    private AdminAdapter.OnRemoveClickListener listener;
 
     // Constructor
-    public ReportsAdapter(List<Report> reportList) {
+    public ReportsAdapter(List<Report> reportList, AdminAdapter.OnRemoveClickListener listener) {
         this.reportList = reportList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -39,6 +42,7 @@ public class ReportsAdapter extends RecyclerView.Adapter<ReportViewHolder> {
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
         Report report = reportList.get(position);
         holder.emailTextView.setText(report.getUserEmail());
+        holder.removeBtn.setOnClickListener(v -> listener.onRemove(report.getReportId()));
 
         // Bind message if exists
         if (report.getMessage() != null && !report.getMessage().isEmpty()) {
@@ -65,14 +69,6 @@ public class ReportsAdapter extends RecyclerView.Adapter<ReportViewHolder> {
         } else {
             holder.imageView.setVisibility(View.GONE);
         }
-
-        holder.itemView.setOnLongClickListener(v -> {
-            if (longClickListener != null) {
-                longClickListener.onReportLongClick(reportList.get(position));
-            }
-            return true;
-        });
-
     }
 
     @Override
@@ -91,14 +87,18 @@ public class ReportsAdapter extends RecyclerView.Adapter<ReportViewHolder> {
         }
     }
 
-    public interface OnReportLongClickListener {
-        void onReportLongClick(Report report);
+    static class ReportViewHolder extends RecyclerView.ViewHolder {
+        TextView emailTextView;
+        TextView messageTextView;
+        ImageView imageView;
+        ImageButton removeBtn;
+
+        public ReportViewHolder(@NonNull View itemView) {
+            super(itemView);
+            emailTextView = itemView.findViewById(R.id.reportEmail);
+            messageTextView = itemView.findViewById(R.id.reportMessage);
+            imageView = itemView.findViewById(R.id.reportImage);
+            removeBtn = itemView.findViewById(R.id.btnRemove);
+        }
     }
-
-    private OnReportLongClickListener longClickListener;
-
-    public void setOnReportLongClickListener(OnReportLongClickListener listener) {
-        this.longClickListener = listener;
-    }
-
 }
