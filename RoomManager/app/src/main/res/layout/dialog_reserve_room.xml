@@ -107,52 +107,52 @@
         android:paddingBottom="5dp"
         android:weightSum="2">
 
-        <!-- Time Pickers Section -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/rounded_background"
-            android:backgroundTint="@color/buttonColor"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+<!--        &lt;!&ndash; Time Pickers Section &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:background="@drawable/rounded_background"-->
+<!--            android:backgroundTint="@color/buttonColor"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:orientation="vertical">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Start Time"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:text="Start Time"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="14sp"-->
+<!--                android:textStyle="bold" />-->
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
+<!--            <LinearLayout-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="center"-->
+<!--                android:orientation="horizontal">-->
 
-                <NumberPicker
-                    android:id="@+id/hour_picker"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:theme="@style/Theme.AppCompat.DayNight" />
+<!--                <NumberPicker-->
+<!--                    android:id="@+id/hour_picker"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:theme="@style/Theme.AppCompat.DayNight" />-->
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text=":"
-                    android:textColor="@color/white"
-                    android:textSize="40sp" />
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:text=":"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textSize="40sp" />-->
 
-                <NumberPicker
-                    android:id="@+id/minute_picker"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:theme="@style/Theme.AppCompat.DayNight" />
-            </LinearLayout>
-        </LinearLayout>
+<!--                <NumberPicker-->
+<!--                    android:id="@+id/minute_picker"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:theme="@style/Theme.AppCompat.DayNight" />-->
+<!--            </LinearLayout>-->
+<!--        </LinearLayout>-->
 
         <!-- Duration Picker Section -->
         <LinearLayout

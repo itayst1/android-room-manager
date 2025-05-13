@@ -19,7 +19,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
     private List<String> timeSlots;
     private OnTimeSlotClickListener listener;
     private final List<String> reservedSlots; // List to track if a slot is reserved
-    private List<Integer> room;
+    private int selectedPosition = -1; // Track the selected item position
 
     public interface OnTimeSlotClickListener {
         void onTimeSlotClick(String timeSlot);
@@ -40,28 +40,51 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
 
     @Override
     public void onBindViewHolder(@NonNull TimeSlotViewHolder holder, int position) {
-        if (reservedSlots.isEmpty() || timeSlots.isEmpty()) {
+        // Use holder.getAdapterPosition() instead of position
+        final int adapterPosition = holder.getAdapterPosition();
+
+        if (reservedSlots.isEmpty() || timeSlots.isEmpty() || adapterPosition == RecyclerView.NO_POSITION) {
             return;
         }
-        String timeSlot = timeSlots.get(position);
-        holder.timeSlotTextView.setText(timeSlots.get(position));
+
+        String timeSlot = timeSlots.get(adapterPosition);
+        holder.timeSlotTextView.setText(timeSlot);
         holder.timeSlotTextView.setTextColor(Color.WHITE);
-        // Check if slot is reserved
-        if (reservedSlots.get(position).equals("Reserved")) {
+
+        // Check if the slot is reserved, available, or past
+        if (reservedSlots.get(adapterPosition).equals("Reserved")) {
             holder.timeSlotStatus.setText("Reserved");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
-        } else if (reservedSlots.get(position).equals("Available")) {
+        } else if (reservedSlots.get(adapterPosition).equals("Available")) {
             holder.timeSlotStatus.setText("Available");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_green);
         } else {
             holder.timeSlotStatus.setText("Time past");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
         }
+
+        if (holder.timeSlotStatus.getText().equals("Available")) {
+            // Change background color of the selected item
+            if (selectedPosition == adapterPosition) {
+                holder.timeSlot.setBackgroundResource(R.drawable.rounded_background_color); // Highlight selected item
+            } else {
+                holder.timeSlot.setBackgroundColor(Color.TRANSPARENT); // Default background
+            }
+        } else {
+            holder.timeSlot.setBackgroundColor(Color.TRANSPARENT); // Default background
+        }
+
         // Set a click listener on the time slot
         holder.timeSlot.setOnClickListener(v -> {
+            selectedPosition = adapterPosition; // Update the selected item
+            notifyDataSetChanged(); // Notify the adapter that an item has been selected
+
             if (listener != null) {
                 listener.onTimeSlotClick(timeSlot);
             }
+
+            // Optional: Update the selected time somewhere else (outside of RecyclerView)
+            updateSelectedTime(timeSlot);
         });
     }
 
@@ -80,5 +103,13 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
             timeSlotStatus = itemView.findViewById(R.id.time_slot_status);
             timeSlot = itemView.findViewById(R.id.time_slot);
         }
+    }
+
+    // Method to update the selected time outside of RecyclerView
+    private void updateSelectedTime(String timeSlot) {
+        // Example: You can call a method in your activity or fragment to update the UI with the selected start time
+        String selectedStartTime = timeSlot.split("-")[0];
+        // Assuming you have a TextView in your activity/fragment to display the selected start time
+        // selectedTimeTextView.setText("Selected Start Time: " + selectedStartTime);
     }
 }
