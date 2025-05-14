@@ -38,8 +38,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -48,8 +46,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter.OnTimeSlotClickListener {
 
     private Spinner roomSpinner;
-    private NumberPicker hourPicker, minutePicker, durationPicker;
+    private NumberPicker durationPicker;
     private Button reserveButton, cancelButton, selectDateButton;
+    private TextView selectedTime;
 
     private RecyclerView timeSlotsRecycler;
     private List<String> timeSlots = new ArrayList<>();
@@ -129,11 +128,10 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                                     int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
                                     int reservedHour = Integer.parseInt(reservedTime.split(":")[0]);
                                     int reservedMinute = Integer.parseInt(reservedTime.split(":")[1]);
-                                    String duration = reservation.child("duration").getValue(String.class);
+                                    String endTime = reservation.child("endTime").getValue(String.class);
                                     Calendar reservedStart = (Calendar) Calendar.getInstance().clone();
                                     reservedStart.set(year, month, day, reservedHour, reservedMinute, 0);
                                     Calendar reservedEnd = (Calendar) reservedStart.clone();
-                                    String endTime = getEndTimeFromStart(reservedTime, duration);
                                     reservedEnd.set(Calendar.HOUR_OF_DAY, Integer.parseInt(endTime.split(":")[0]));
                                     reservedEnd.set(Calendar.MINUTE, Integer.parseInt(endTime.split(":")[1]));
                                     reservedEnd.set(Calendar.SECOND, 29);
@@ -211,7 +209,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                         }
 
                         // Setup pickers ONLY AFTER timeSlots is filled
-                        setupPickers();
+                        setupDurationPicker();
                         setupTimeSlotsRecycler();
                     }
 
@@ -227,18 +225,10 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     public void onTimeSlotClick(String timeSlot) {
         if (reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Past"))
             return;
-        // Parse the clicked time slot
-        String[] times = timeSlot.split("-");
-        String startTime = times[0];
-
-        // Extract hour and minute from the start time
-        String[] timeParts = startTime.split(":");
-        String hour = timeParts[0];
-        String minute = timeParts[1];
-
-        // Set the time pickers to the clicked time
-//        hourPicker.setValue(hours.indexOf(hour));
-//        minutePicker.setValue(minutes.indexOf(minute));
+        String startTime = timeSlot.split("-")[0];
+        String duration = String.valueOf(durations[durationPicker.getValue()].charAt(0));
+        String endTime = getEndTimeFromStart(startTime, duration);
+        selectedTime.setText(startTime + "-" + endTime);
     }
 
     private void setupDialogWindow(Dialog dialog) {
@@ -255,14 +245,27 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         reserveButton = dialog.findViewById(R.id.reserve_button);
         cancelButton = dialog.findViewById(R.id.cancel_button);
         timeSlotsRecycler = dialog.findViewById(R.id.time_slots_recycler);
+        selectedTime = dialog.findViewById(R.id.selected_time);
     }
 
-    private void setupPickers() {
+    private void setupDurationPicker() {
         durationPicker.setMinValue(0);
         durationPicker.setMaxValue(durations.length - 1);
         durationPicker.setDisplayedValues(durations);
         durationPicker.postInvalidate();  // Force redraw
         durationPicker.requestLayout();
+
+        durationPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                if (!selectedTime.getText().toString().isEmpty()) {
+                    String startTime = selectedTime.getText().toString().split("-")[0];
+                    String duration = String.valueOf(durations[durationPicker.getValue()].charAt(0));
+                    String endTime = getEndTimeFromStart(startTime, duration);
+                    selectedTime.setText(startTime + "-" + endTime);
+                }
+            }
+        });
     }
 
     private void setupDateButton() {
@@ -279,6 +282,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 selectedDateTime.set(y, m, d);
                 selectDateButton.setText(d + "/" + (m + 1) + "/" + y);
                 fetchReservedTimes();
+                selectedTime.setText("");
             }, year, month, day);
 
             datePickerDialog.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
@@ -328,6 +332,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                     ((TextView) view).setTextColor(Color.WHITE);
                 }
                 fetchReservedTimes();
+                selectedTime.setText("");
             }
 
             @Override
@@ -371,13 +376,17 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     }
 
     private void handleReservation(Context context) {
+        if(selectedTime.getText().toString().isEmpty()){
+            Toast.makeText(context, "Select a time slot", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String email = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
         String roomType = roomSpinner.getSelectedItem().toString();
         String duration = durations[durationPicker.getValue()];
         String date = selectDateButton.getText().toString().replace("/", "-");
-        String hour = hours.get(hourPicker.getValue());
-        String minute = minutes.get(minutePicker.getValue());
-        String time = hour + ":" + minute;
+        String time = selectedTime.getText().toString().split("-")[0];
+        String hour = time.split(":")[0];
+        String minute = time.split(":")[1];
         Calendar endTimeCal = (Calendar) Calendar.getInstance().clone();
         endTimeCal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hour));
         endTimeCal.set(Calendar.MINUTE, Integer.parseInt(minute));
@@ -390,7 +399,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         for (String room : availableRooms.get(timeSlots.indexOf(time + "-" + endTime))) {
             if (checkAvailability(time, room)) {
                 didReserve.set(true);
-                Reservation reservation = new Reservation(email, time, duration);
+                Reservation reservation = new Reservation(email, time, endTime);
                 FirebaseDatabase.getInstance().getReference("reservations/" + date + "/" + room)
                         .push().setValue(reservation)
                         .addOnSuccessListener(aVoid -> {
@@ -421,14 +430,18 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             }
         }
 
-        if (startIndex == -1 || startIndex + durationLessons - 1 >= timeSlots.size()) {
+        if (startIndex == -1) {
             return null; // Invalid time or out of bounds
+        }
+
+        if(startIndex + durationLessons - 1 >= timeSlots.size()){
+            String lastSlot = timeSlots.get(timeSlots.size() - 1);
+            return lastSlot.split("-")[1];
         }
 
         // Get the end time of the last lesson in the range
         String lastSlot = timeSlots.get(startIndex + durationLessons - 1);
-        String endTime = lastSlot.split("-")[1];
-        return endTime;
+        return lastSlot.split("-")[1];
     }
 
 }

@@ -43,19 +43,19 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
         // Use holder.getAdapterPosition() instead of position
         final int adapterPosition = holder.getAdapterPosition();
 
-        if (reservedSlots.isEmpty() || timeSlots.isEmpty() || adapterPosition == RecyclerView.NO_POSITION) {
+        if (reservedSlots.isEmpty() || timeSlots.isEmpty() || position == RecyclerView.NO_POSITION) {
             return;
         }
 
-        String timeSlot = timeSlots.get(adapterPosition);
+        String timeSlot = timeSlots.get(position);
         holder.timeSlotTextView.setText(timeSlot);
         holder.timeSlotTextView.setTextColor(Color.WHITE);
 
         // Check if the slot is reserved, available, or past
-        if (reservedSlots.get(adapterPosition).equals("Reserved")) {
+        if (reservedSlots.get(position).equals("Reserved")) {
             holder.timeSlotStatus.setText("Reserved");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
-        } else if (reservedSlots.get(adapterPosition).equals("Available")) {
+        } else if (reservedSlots.get(position).equals("Available")) {
             holder.timeSlotStatus.setText("Available");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_green);
         } else {

@@ -46,7 +46,7 @@
                     android:paddingEnd="40dp"
                     android:popupBackground="@drawable/rounded_button_color"
                     android:spinnerMode="dropdown"
-                    android:theme="@style/Theme.AppCompat.DayNight" />
+                    android:theme="@style/ThemeOverlay.AppCompat.Dark" />
 
                 <ImageView
                     android:layout_width="24dp"
@@ -85,101 +85,77 @@
 
     </LinearLayout>
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/time_slots_recycler"
-        android:layout_width="match_parent"
-        android:layout_height="280dp"
-        android:background="@drawable/rounded_background"
-        android:backgroundTint="@color/buttonColor"
-        android:fadeScrollbars="false"
-        android:nestedScrollingEnabled="true"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp" />
-
-    <!-- Start Time Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:paddingBottom="5dp"
-        android:weightSum="2">
+        android:background="@drawable/rounded_background"
+        android:backgroundTint="@color/buttonColor"
+        android:orientation="vertical">
 
-<!--        &lt;!&ndash; Time Pickers Section &ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            android:background="@drawable/rounded_background"-->
-<!--            android:backgroundTint="@color/buttonColor"-->
-<!--            android:gravity="center_horizontal"-->
-<!--            android:orientation="vertical">-->
-
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_gravity="center"-->
-<!--                android:text="Start Time"-->
-<!--                android:textColor="@color/white"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textStyle="bold" />-->
-
-<!--            <LinearLayout-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:orientation="horizontal">-->
-
-<!--                <NumberPicker-->
-<!--                    android:id="@+id/hour_picker"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:theme="@style/Theme.AppCompat.DayNight" />-->
-
-<!--                <TextView-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_gravity="center"-->
-<!--                    android:text=":"-->
-<!--                    android:textColor="@color/white"-->
-<!--                    android:textSize="40sp" />-->
-
-<!--                <NumberPicker-->
-<!--                    android:id="@+id/minute_picker"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:theme="@style/Theme.AppCompat.DayNight" />-->
-<!--            </LinearLayout>-->
-<!--        </LinearLayout>-->
-
-        <!-- Duration Picker Section -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
             android:background="@drawable/rounded_background"
             android:backgroundTint="@color/buttonColor"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Reserve For"
+                android:text="Selected time: "
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <NumberPicker
-                android:id="@+id/duration_picker"
+            <TextView
+                android:id="@+id/selected_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:theme="@style/Theme.AppCompat.DayNight" />
+                android:layout_gravity="center"
+                android:text="00:00"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
         </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/time_slots_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:fadeScrollbars="false"
+            android:nestedScrollingEnabled="true"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
+    </LinearLayout>
+
+    <!-- Duration Picker Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1"
+        android:background="@drawable/rounded_background"
+        android:backgroundTint="@color/buttonColor"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Reserve For"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <NumberPicker
+            android:id="@+id/duration_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark" />
     </LinearLayout>
 
     <!-- Buttons -->

@@ -72,8 +72,8 @@ public class MyReservationsActivity extends AppCompatActivity {
                         for (DataSnapshot reservationSnapshot : roomSnapshot.getChildren()) {
                             if ((Objects.equals(reservationSnapshot.child("userEmail").getValue(String.class), FirebaseAuth.getInstance().getCurrentUser().getEmail()))) {
                                 String startTime = reservationSnapshot.child("startTime").getValue(String.class);
-                                String duration = reservationSnapshot.child("duration").getValue(String.class);
-                                Button reservationButton = createReservationButton(date, roomName, startTime, duration, reservationSnapshot.getRef());
+                                String endTime = reservationSnapshot.child("endTime").getValue(String.class);
+                                Button reservationButton = createReservationButton(date, roomName, startTime, endTime, reservationSnapshot.getRef());
                                 buttonContainer.addView(reservationButton);
                             }
                         }
@@ -93,9 +93,9 @@ public class MyReservationsActivity extends AppCompatActivity {
         });
     }
 
-    private Button createReservationButton(String date, String roomName, String startTime, String duration, DatabaseReference reservationRef) {
+    private Button createReservationButton(String date, String roomName, String startTime, String endTime, DatabaseReference reservationRef) {
         Button button = new Button(context);
-        button.setText(date + " - " + roomName + " - " + startTime + " (" + duration + ")");
+        button.setText(date + " | Room: " + roomName + " | " + startTime + "-" + endTime);
         button.setAllCaps(false);
         button.setBackgroundResource(R.drawable.rounded_button_color);
         button.setTextColor(Color.WHITE);
@@ -109,7 +109,7 @@ public class MyReservationsActivity extends AppCompatActivity {
         button.setLayoutParams(params);
         button.setOnClickListener(view -> {
         });
-        button.setOnClickListener(view -> showReservationDetails(date, roomName, startTime, duration, reservationRef));
+        button.setOnClickListener(view -> showReservationDetails(date, roomName, startTime, endTime, reservationRef));
         return button;
     }
 
@@ -122,10 +122,10 @@ public class MyReservationsActivity extends AppCompatActivity {
         return textView;
     }
 
-    private void showReservationDetails(String date, String roomName, String startTime, String duration, DatabaseReference reservationRef) {
+    private void showReservationDetails(String date, String roomName, String startTime, String endTime, DatabaseReference reservationRef) {
         AlertDialog.Builder builder = new AlertDialog.Builder(style);
         builder.setTitle("Reservation Details");
-        builder.setMessage("Date: " + date + "\nRoom: " + roomName + "\nStart Time: " + startTime + "\nDuration: " + duration);
+        builder.setMessage("Date: " + date + "\nRoom: " + roomName + "\nReserved time: " + startTime + "-" + endTime);
 
         builder.setPositiveButton("Edit", (dialog, which) -> editReservation(reservationRef));
         builder.setNegativeButton("Delete", (dialog, which) -> deleteReservation(reservationRef));
