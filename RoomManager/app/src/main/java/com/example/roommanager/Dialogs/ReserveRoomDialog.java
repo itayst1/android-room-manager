@@ -390,13 +390,13 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         Calendar endTimeCal = (Calendar) Calendar.getInstance().clone();
         endTimeCal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hour));
         endTimeCal.set(Calendar.MINUTE, Integer.parseInt(minute));
-        String endTime = getEndTimeFromStart(time, "1");
-        if (availableRooms.get(timeSlots.indexOf(time + "-" + endTime)).isEmpty()) {
+        String endTime = selectedTime.getText().toString().split("-")[1];
+        if (availableRooms.get(timeSlots.indexOf(time + "-" + getEndTimeFromStart(time, "1"))).isEmpty()) {
             Toast.makeText(context, "No available rooms", Toast.LENGTH_SHORT).show();
             return;
         }
         AtomicBoolean didReserve = new AtomicBoolean(false);
-        for (String room : availableRooms.get(timeSlots.indexOf(time + "-" + endTime))) {
+        for (String room : availableRooms.get(timeSlots.indexOf(time + "-" + getEndTimeFromStart(time, "1")))) {
             if (checkAvailability(time, room)) {
                 didReserve.set(true);
                 Reservation reservation = new Reservation(email, time, endTime);
