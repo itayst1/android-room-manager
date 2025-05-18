@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -20,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
 
 import com.example.roommanager.R;
+import com.example.roommanager.Reservation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,7 +29,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 public class MyReservationsActivity extends AppCompatActivity {
 
@@ -65,22 +75,70 @@ public class MyReservationsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 buttonContainer.removeAllViews();
+
+                // Map from date to list of reservations for that date
+                Map<String, List<ReservationWithRef>> groupedReservations = new TreeMap<>(); // TreeMap to keep dates sorted
+
                 for (DataSnapshot dateSnapshot : snapshot.getChildren()) {
                     String date = dateSnapshot.getKey().replace("-", "/");
                     for (DataSnapshot roomSnapshot : dateSnapshot.getChildren()) {
                         String roomName = roomSnapshot.getKey();
                         for (DataSnapshot reservationSnapshot : roomSnapshot.getChildren()) {
-                            if ((Objects.equals(reservationSnapshot.child("userEmail").getValue(String.class), FirebaseAuth.getInstance().getCurrentUser().getEmail()))) {
-                                String startTime = reservationSnapshot.child("startTime").getValue(String.class);
-                                String endTime = reservationSnapshot.child("endTime").getValue(String.class);
-                                Button reservationButton = createReservationButton(date, roomName, startTime, endTime, reservationSnapshot.getRef());
-                                buttonContainer.addView(reservationButton);
+                            Reservation reservation = reservationSnapshot.getValue(Reservation.class);
+                            if (reservation != null &&
+                                    reservation.getUserEmail() != null &&
+                                    reservation.getUserEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())) {
+
+                                ReservationWithRef resWithRef = new ReservationWithRef(date, roomName, reservation, reservationSnapshot.getRef());
+
+                                if (!groupedReservations.containsKey(date)) {
+                                    groupedReservations.put(date, new ArrayList<>());
+                                }
+                                groupedReservations.get(date).add(resWithRef);
                             }
                         }
                     }
                 }
-                if (buttonContainer.getChildCount() == 0) {
+
+                if (groupedReservations.isEmpty()) {
                     buttonContainer.addView(createTextView("No reservations found"));
+                } else {
+                    // For each date, sort the reservations by startTime and add header + buttons
+                    for (String date : groupedReservations.keySet()) {
+                        List<ReservationWithRef> reservationsForDate = groupedReservations.get(date);
+                        // Sort by start time
+                        Collections.sort(reservationsForDate);
+
+                        // Add date header
+                        TextView dateHeader = new TextView(context);
+                        dateHeader.setText(date);
+                        dateHeader.setTextSize(24);
+                        dateHeader.setTextColor(Color.WHITE);
+                        dateHeader.setAllCaps(true);
+                        dateHeader.setPadding(20, 40, 20, 20);
+
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        params.gravity = Gravity.CENTER_HORIZONTAL;
+                        dateHeader.setLayoutParams(params);
+
+                        dateHeader.setGravity(Gravity.CENTER);
+
+                        buttonContainer.addView(dateHeader);
+
+                        // Add all reservation buttons under this date
+                        for (ReservationWithRef res : reservationsForDate) {
+                            Button btn = createReservationButton(
+                                    res.date,
+                                    res.roomName,
+                                    res.reservation.getStartTime(),
+                                    res.reservation.getEndTime(),
+                                    res.ref);
+                            buttonContainer.addView(btn);
+                        }
+                    }
                 }
                 progressBar.setVisibility(View.GONE);
             }
@@ -92,6 +150,7 @@ public class MyReservationsActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private Button createReservationButton(String date, String roomName, String startTime, String endTime, DatabaseReference reservationRef) {
         Button button = new Button(context);
@@ -184,4 +243,31 @@ public class MyReservationsActivity extends AppCompatActivity {
     public void onHomeButtonClick(View view) {
         startActivity(new Intent(this, HomeActivity.class));
     }
+
+    private static class ReservationWithRef implements Comparable<ReservationWithRef> {
+        public String date; // "dd/MM/yyyy"
+        public String roomName;
+        public Reservation reservation;
+        public DatabaseReference ref;
+
+        public ReservationWithRef(String date, String roomName, Reservation reservation, DatabaseReference ref) {
+            this.date = date;
+            this.roomName = roomName;
+            this.reservation = reservation;
+            this.ref = ref;
+        }
+
+        @Override
+        public int compareTo(ReservationWithRef other) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                Date thisDateTime = sdf.parse(this.date + " " + this.reservation.getStartTime());
+                Date otherDateTime = sdf.parse(other.date + " " + other.reservation.getStartTime());
+                return thisDateTime.compareTo(otherDateTime);
+            } catch (ParseException e) {
+                return 0;
+            }
+        }
+    }
+
 }
