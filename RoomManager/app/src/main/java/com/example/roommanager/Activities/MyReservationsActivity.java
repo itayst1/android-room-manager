@@ -1,5 +1,7 @@
 package com.example.roommanager.Activities;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ContextThemeWrapper;
 
+import com.example.roommanager.NotificationReceiver;
 import com.example.roommanager.R;
 import com.example.roommanager.Reservation;
 import com.google.firebase.auth.FirebaseAuth;
@@ -154,7 +157,7 @@ public class MyReservationsActivity extends AppCompatActivity {
 
     private Button createReservationButton(String date, String roomName, String startTime, String endTime, DatabaseReference reservationRef) {
         Button button = new Button(context);
-        button.setText(date + " | Room: " + roomName + " | " + startTime + "-" + endTime);
+        button.setText("Room: " + roomName + " | " + startTime + "-" + endTime);
         button.setAllCaps(false);
         button.setBackgroundResource(R.drawable.rounded_button_color);
         button.setTextColor(Color.WHITE);
@@ -177,7 +180,16 @@ public class MyReservationsActivity extends AppCompatActivity {
         textView.setText(text);
         textView.setTextColor(getColor(R.color.white));
         textView.setTextSize(30);
-        textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.gravity = Gravity.CENTER_HORIZONTAL; // Centers the TextView inside the parent
+        textView.setLayoutParams(params);
+        textView.setGravity(Gravity.CENTER);
+        textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER); // Centers text inside TextView
+
         return textView;
     }
 
@@ -212,8 +224,11 @@ public class MyReservationsActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(style);
         builder.setMessage("Are you sure you want to delete this reservation?")
                 .setPositiveButton("Yes", (dialog, which) -> {
+                    String requestCode = reservationRef.getKey();
                     reservationRef.removeValue().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
+                            assert requestCode != null;
+                            cancelNotification(context, requestCode);
                             Toast.makeText(this, "Reservation deleted", Toast.LENGTH_SHORT).show();
                             loadUserReservations(); // Refresh the list
                         } else {
@@ -270,4 +285,18 @@ public class MyReservationsActivity extends AppCompatActivity {
         }
     }
 
+    private void cancelNotification(Context context, String reservationId) {
+        int requestCode = reservationId.hashCode();
+
+        Intent intent = new Intent(context, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(pendingIntent);
+    }
 }

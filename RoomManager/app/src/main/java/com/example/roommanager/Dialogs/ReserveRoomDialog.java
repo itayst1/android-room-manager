@@ -1,7 +1,9 @@
 package com.example.roommanager.Dialogs;
 
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -32,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.roommanager.Activities.HomeActivity;
 import com.example.roommanager.Adapters.TimeSlotAdapter;
+import com.example.roommanager.NotificationReceiver;
 import com.example.roommanager.R;
 import com.example.roommanager.Reservation;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,6 +44,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,7 +52,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter.OnTimeSlotClickListener {
 
@@ -199,12 +202,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                                         current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
                                         current.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
                                         if ((reservedStart.before(current) && reservedEnd.after(current))) {
-                                            Log.d("debug", roomsSnapshot.getKey());
-                                            Log.d("debug", reservedStart.getTime().toString());
-                                            Log.d("debug", current.getTime().toString());
-                                            Log.d("debug", reservedEnd.getTime().toString());
                                             availableRooms.get(timeSlots.indexOf(ts)).remove(Objects.requireNonNull(roomsSnapshot.getKey()));
-                                            Log.d("debug", availableRooms.get(timeSlots.indexOf(ts)).size() + "");
                                             if (availableRooms.get(timeSlots.indexOf(ts)).isEmpty()) {
                                                 reservedSlots.set(timeSlots.indexOf(ts), "Reserved");
                                             }
@@ -478,9 +476,12 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             if (checkAvailability(time, room)) {
                 didReserve = true;
                 Reservation reservation = new Reservation(email, time, endTime);
-                FirebaseDatabase.getInstance().getReference("reservations/" + date + "/" + room)
-                        .push().setValue(reservation)
+                DatabaseReference reservationRef = FirebaseDatabase.getInstance()
+                        .getReference("reservations/" + date + "/" + room).push();
+                String reservationId = reservationRef.getKey();
+                reservationRef.setValue(reservation)
                         .addOnSuccessListener(aVoid -> {
+                            scheduleNotification(context, date, time, room, reservationId);
                             Toast.makeText(context, "Room " + room + " reserved!", Toast.LENGTH_SHORT).show();
                             dismiss();
                         })
@@ -520,6 +521,41 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         // Get the end time of the last lesson in the range
         String lastSlot = timeSlots.get(startIndex + durationLessons - 1);
         return lastSlot.split("-")[1];
+    }
+
+    public void scheduleNotification(Context context, String date, String startTime, String room, String reservationId) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        try {
+            String dateTimeStr = date + " " + startTime;
+            Calendar reservationTime = Calendar.getInstance();
+            reservationTime.setTime(Objects.requireNonNull(sdf.parse(dateTimeStr)));
+
+            // Subtract 1 hour for the notification trigger
+            reservationTime.add(Calendar.HOUR_OF_DAY, -1);
+
+            long triggerAtMillis = reservationTime.getTimeInMillis();
+
+            if (triggerAtMillis > System.currentTimeMillis()) {
+                Intent intent = new Intent(context, NotificationReceiver.class);
+                String message = "Room: " + room + " at " + startTime + " on " + date;
+                intent.putExtra("reservationDetails", message);
+                intent.putExtra("room", room);
+                intent.putExtra("date", date);
+                intent.putExtra("time", startTime);
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        reservationId.hashCode(), // unique request code
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                );
+
+                AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
 }
