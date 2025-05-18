@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter.OnTimeSlotClickListener {
 
@@ -89,12 +89,13 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     public void onStart() {
         super.onStart();
 
-        if(isInternetAvailable(context)){
+        if (isInternetAvailable(context)) {
             loadTimeSlotsFromDatabase();
             setupDateButton();
             setupRoomSpinner();
+            autoUpdateReservations();
 
-            reserveButton.setOnClickListener(v -> handleReservation(context));
+            reserveButton.setOnClickListener(v -> handleReservation());
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.CustomDialogTheme));
             builder.setTitle("No internet connection.");
@@ -116,8 +117,30 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         }
     }
 
+    private void autoUpdateReservations() {
+        String selectedDate = selectDateButton.getText().toString().replace("/", "-");
+        if (selectedDate.isEmpty()) return;
+
+        FirebaseDatabase.getInstance()
+                .getReference("reservations/")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        fetchReservedTimes();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Listener cancelled: " + error.getMessage());
+                    }
+                });
+    }
 
     private void fetchReservedTimes() {
+        if (roomSpinner.getSelectedItem() == null) {
+            Log.e("fetchReservedTimes", "No room type selected yet.");
+            return;
+        }
         // Clear existing data
         reservedSlots.clear();
         availableRooms.clear();
@@ -176,7 +199,12 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                                         current.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tsSplit.split(":")[0]));
                                         current.set(Calendar.MINUTE, Integer.parseInt(tsSplit.split(":")[1]));
                                         if ((reservedStart.before(current) && reservedEnd.after(current))) {
+                                            Log.d("debug", roomsSnapshot.getKey());
+                                            Log.d("debug", reservedStart.getTime().toString());
+                                            Log.d("debug", current.getTime().toString());
+                                            Log.d("debug", reservedEnd.getTime().toString());
                                             availableRooms.get(timeSlots.indexOf(ts)).remove(Objects.requireNonNull(roomsSnapshot.getKey()));
+                                            Log.d("debug", availableRooms.get(timeSlots.indexOf(ts)).size() + "");
                                             if (availableRooms.get(timeSlots.indexOf(ts)).isEmpty()) {
                                                 reservedSlots.set(timeSlots.indexOf(ts), "Reserved");
                                             }
@@ -192,7 +220,6 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                             });
                 }
             });
-
         }
     }
 
@@ -209,7 +236,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         String endTime = Objects.requireNonNull(getEndTimeFromStart(reservationTime, durations[durationPicker.getValue()]));
         reservationEnd.set(Calendar.HOUR_OF_DAY, Integer.parseInt(endTime.split(":")[0]));
         reservationEnd.set(Calendar.MINUTE, Integer.parseInt(endTime.split(":")[1]));
-        reservationEnd.set(Calendar.SECOND, 59);
+        reservationEnd.set(Calendar.SECOND, 29);
 
         if (Calendar.getInstance().after(currentReservations)) {
             return false;
@@ -426,7 +453,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         });
     }
 
-    private void handleReservation(Context context) {
+    private void handleReservation() {
         if (selectedTime.getText().toString().isEmpty()) {
             Toast.makeText(context, "Select a time slot", Toast.LENGTH_SHORT).show();
             return;
