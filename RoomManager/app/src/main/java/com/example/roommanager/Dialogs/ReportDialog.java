@@ -41,14 +41,14 @@ import java.util.Map;
 
 public class ReportDialog extends DialogFragment {
 
-    private static final int STORAGE_PERMISSION_REQUEST = 101;
-    private static final int CAMERA_PERMISSION_REQUEST = 102;
-
     private EditText reportEditText;
     private ImageView imagePreview;
     private Uri imageUri = null;
-
     private Bitmap cameraBitmap = null;
+
+    private ActivityResultLauncher<String> requestMediaPermissionLauncher;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private ActivityResultLauncher<Intent> cameraLauncher;
 
     @NonNull
     @Override
@@ -65,8 +65,10 @@ public class ReportDialog extends DialogFragment {
         Button sendReportButton = view.findViewById(R.id.sendReportButton);
         Button cancelButton = view.findViewById(R.id.cancelButton);
 
-        selectImageButton.setOnClickListener(v -> checkPermissionsAndOpenImagePicker());
-        takePhotoButton.setOnClickListener(v -> checkPermissionsAndOpenCamera());
+        setupPermissionLaunchers();
+
+        selectImageButton.setOnClickListener(v -> requestImagePermission());
+        takePhotoButton.setOnClickListener(v -> requestCameraPermission());
         sendReportButton.setOnClickListener(v -> sendReport());
         cancelButton.setOnClickListener(v -> dismiss());
 
@@ -80,32 +82,49 @@ public class ReportDialog extends DialogFragment {
         }
     }
 
-    private void checkPermissionsAndOpenImagePicker() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            // Only check permission below API 33
-            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST);
-                return;
-            }
-        }
-        openImagePicker();  // Safe to call directly in API 33+
+    private void setupPermissionLaunchers() {
+        requestMediaPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) openImagePicker();
+                    else Toast.makeText(getContext(), "Storage permission denied.", Toast.LENGTH_SHORT).show();
+                });
+
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        imageUri = result.getData().getData();
+                        imagePreview.setImageURI(imageUri);
+                    }
+                });
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Bitmap bitmap = (Bitmap) result.getData().getExtras().get("data");
+                        imagePreview.setImageBitmap(bitmap);
+                        cameraBitmap = bitmap;
+                    }
+                });
     }
 
-    private void checkPermissionsAndOpenCamera() {
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.CAMERA)
+    private void requestImagePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestMediaPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+        } else {
+            requestMediaPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+    }
+
+    private void requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(),
-                    new String[]{android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, 102); // fallback for camera
         } else {
             openCamera();
         }
-    }
-
-    private void openCamera() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraLauncher.launch(intent);
     }
 
     private void openImagePicker() {
@@ -113,37 +132,9 @@ public class ReportDialog extends DialogFragment {
         imagePickerLauncher.launch(intent);
     }
 
-    private final ActivityResultLauncher<Intent> imagePickerLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                    result -> {
-                        if (result.getResultCode() == Activity.RESULT_OK) {
-                            Intent data = result.getData();
-                            if (data != null && data.getData() != null) {
-                                imageUri = data.getData();
-                                imagePreview.setImageURI(imageUri);
-                            }
-                        }
-                    });
-
-    private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    Intent data = result.getData();
-                    if (data != null && data.getExtras() != null) {
-                        Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                        imagePreview.setImageBitmap(bitmap);
-                        cameraBitmap = bitmap;
-                    }
-                }
-            });
-
-
-    private Uri getImageUriFromBitmap(Bitmap bitmap) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(getContext().getContentResolver(), bitmap, "Captured Image", null);
-        return Uri.parse(path);
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraLauncher.launch(intent);
     }
 
     private void sendReport() {
@@ -161,8 +152,7 @@ public class ReportDialog extends DialogFragment {
         reportData.put("timestamp", System.currentTimeMillis());
 
         if (cameraBitmap != null) {
-            String imageString = encodeImageToBase64(cameraBitmap);
-            reportData.put("imageUrl", imageString);
+            reportData.put("imageUrl", encodeImageToBase64(cameraBitmap));
         } else if (imageUri != null) {
             try {
                 Bitmap bitmap;
@@ -171,14 +161,12 @@ public class ReportDialog extends DialogFragment {
                 } else {
                     bitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
                 }
-                String imageString = encodeImageToBase64(bitmap);
-                reportData.put("imageUrl", imageString);
+                reportData.put("imageUrl", encodeImageToBase64(bitmap));
             } catch (IOException e) {
                 Toast.makeText(getContext(), "Image processing failed.", Toast.LENGTH_SHORT).show();
                 return;
             }
         }
-
 
         FirebaseDatabase.getInstance().getReference("reports").push().setValue(reportData)
                 .addOnSuccessListener(unused -> {
@@ -195,19 +183,17 @@ public class ReportDialog extends DialogFragment {
         return Base64.encodeToString(imageBytes, Base64.DEFAULT);
     }
 
+    // Optional fallback if camera permission is requested with onRequestPermissionsResult
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (requestCode == STORAGE_PERMISSION_REQUEST) {
-                openImagePicker();
-            } else if (requestCode == CAMERA_PERMISSION_REQUEST) {
-                openCamera();
-            }
+        if (requestCode == 102 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            openCamera();
         } else {
-            Toast.makeText(getContext(), "Permission denied.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Camera permission denied.", Toast.LENGTH_SHORT).show();
         }
     }
 }
+

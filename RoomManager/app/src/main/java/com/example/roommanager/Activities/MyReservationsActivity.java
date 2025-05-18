@@ -127,7 +127,6 @@ public class MyReservationsActivity extends AppCompatActivity {
         builder.setTitle("Reservation Details");
         builder.setMessage("Date: " + date + "\nRoom: " + roomName + "\nReserved time: " + startTime + "-" + endTime);
 
-        builder.setPositiveButton("Edit", (dialog, which) -> editReservation(reservationRef));
         builder.setNegativeButton("Delete", (dialog, which) -> deleteReservation(reservationRef));
         builder.setNeutralButton("Close", (dialog, which) -> dialog.dismiss());
 
@@ -138,25 +137,16 @@ public class MyReservationsActivity extends AppCompatActivity {
         dialog.show();
 
         // Manually change the button text color
-        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
         Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
 
         // Set button text color to black
-        if (positiveButton != null) {
-            positiveButton.setTextColor(0xFF000000);
-        }
         if (negativeButton != null) {
             negativeButton.setTextColor(0xFF000000);
         }
         if (neutralButton != null) {
             neutralButton.setTextColor(0xFF000000);
         }
-    }
-
-    private void editReservation(DatabaseReference reservationRef) {
-        // Implement your edit functionality here
-        Toast.makeText(this, "Edit feature coming soon", Toast.LENGTH_SHORT).show();
     }
 
     private void deleteReservation(DatabaseReference reservationRef) {

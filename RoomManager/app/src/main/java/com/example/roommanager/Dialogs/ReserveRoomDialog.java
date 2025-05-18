@@ -3,9 +3,13 @@ package com.example.roommanager.Dialogs;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,10 +24,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.roommanager.Activities.HomeActivity;
 import com.example.roommanager.Adapters.TimeSlotAdapter;
 import com.example.roommanager.R;
 import com.example.roommanager.Reservation;
@@ -71,17 +78,44 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         setupDialogWindow(dialog);
 
         context = getContext();
-
         initViews(dialog);
-        loadTimeSlotsFromDatabase();
-        setupDateButton();
-        setupRoomSpinner();
 
-        reserveButton.setOnClickListener(v -> handleReservation(context));
         cancelButton.setOnClickListener(v -> dismiss());
 
         return dialog;
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if(isInternetAvailable(context)){
+            loadTimeSlotsFromDatabase();
+            setupDateButton();
+            setupRoomSpinner();
+
+            reserveButton.setOnClickListener(v -> handleReservation(context));
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.CustomDialogTheme));
+            builder.setTitle("No internet connection.");
+            builder.setMessage("Please check your internet connection and try again later.");
+
+            builder.setPositiveButton("ok", (retry, which) -> startActivity(new Intent(context, HomeActivity.class)));
+
+            AlertDialog retry = builder.create();
+            retry.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+
+            retry.show();
+
+            // Manually change the button text color
+            Button positiveButton = retry.getButton(AlertDialog.BUTTON_POSITIVE);
+            // Set button text color to black
+            if (positiveButton != null) {
+                positiveButton.setTextColor(0xFF000000);
+            }
+        }
+    }
+
 
     private void fetchReservedTimes() {
         // Clear existing data
@@ -153,7 +187,9 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                                 // Update UI
                                 adapter.notifyDataSetChanged();
                             })
-                            .addOnFailureListener(e -> Log.e("Firebase", "Failed to fetch reservations"));
+                            .addOnFailureListener(e -> {
+                                Log.e("Firebase", "Failed to fetch reservations");
+                            });
                 }
             });
 
@@ -218,6 +254,21 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                         Log.e("Firebase", "Failed to load lesson times", error.toException());
                     }
                 });
+    }
+
+    public boolean isInternetAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) return false;
+
+        Network network = connectivityManager.getActiveNetwork();
+        if (network == null) return false;
+
+        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+        return capabilities != null && (
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+        );
     }
 
 
@@ -376,7 +427,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     }
 
     private void handleReservation(Context context) {
-        if(selectedTime.getText().toString().isEmpty()){
+        if (selectedTime.getText().toString().isEmpty()) {
             Toast.makeText(context, "Select a time slot", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -395,10 +446,10 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             Toast.makeText(context, "No available rooms", Toast.LENGTH_SHORT).show();
             return;
         }
-        AtomicBoolean didReserve = new AtomicBoolean(false);
+        boolean didReserve = false;
         for (String room : availableRooms.get(timeSlots.indexOf(time + "-" + getEndTimeFromStart(time, "1")))) {
             if (checkAvailability(time, room)) {
-                didReserve.set(true);
+                didReserve = true;
                 Reservation reservation = new Reservation(email, time, endTime);
                 FirebaseDatabase.getInstance().getReference("reservations/" + date + "/" + room)
                         .push().setValue(reservation)
@@ -411,7 +462,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 break;
             }
         }
-        if (!didReserve.get()) {
+        if (!didReserve) {
             Toast.makeText(context, "Reservation failed", Toast.LENGTH_SHORT).show();
         }
     }
@@ -434,7 +485,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             return null; // Invalid time or out of bounds
         }
 
-        if(startIndex + durationLessons - 1 >= timeSlots.size()){
+        if (startIndex + durationLessons - 1 >= timeSlots.size()) {
             String lastSlot = timeSlots.get(timeSlots.size() - 1);
             return lastSlot.split("-")[1];
         }
