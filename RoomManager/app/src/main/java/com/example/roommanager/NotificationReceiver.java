@@ -10,7 +10,7 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
-import com.example.roommanager.Activities.MyReservationsActivity;
+import com.example.roommanager.Activities.HomeActivity;
 
 public class NotificationReceiver extends BroadcastReceiver {
 
@@ -20,7 +20,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent mainIntent = new Intent(context, MyReservationsActivity.class); // or any activity to open
+        Intent mainIntent = new Intent(context, HomeActivity.class); // or any activity to open
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, mainIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

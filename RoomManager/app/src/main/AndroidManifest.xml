@@ -43,10 +43,6 @@
             android:exported="true"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".Activities.MyReservationsActivity"
-            android:exported="true"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".Activities.AdminPanelActivity"
             android:exported="true"
             android:screenOrientation="portrait" />

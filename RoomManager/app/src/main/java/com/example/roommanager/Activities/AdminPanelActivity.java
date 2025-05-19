@@ -22,10 +22,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.roommanager.Adapters.AdminAdapter;
 import com.example.roommanager.R;
+import com.google.firebase.Firebase;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class AdminPanelActivity extends AppCompatActivity {
 
@@ -57,6 +60,7 @@ public class AdminPanelActivity extends AppCompatActivity {
 
         style = new ContextThemeWrapper(this, R.style.CustomDialogTheme);
 
+        checkUserStatus();
 
         // Load data
         loadAdmins();
@@ -69,6 +73,29 @@ public class AdminPanelActivity extends AppCompatActivity {
         });
 
         btnBack.setOnClickListener(v -> startActivity(new Intent(AdminPanelActivity.this, HomeActivity.class)));
+    }
+
+    private void checkUserStatus() {
+        String email = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        FirebaseDatabase.getInstance().getReference("settings/admins").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean admin = false;
+                for (DataSnapshot adminSnapshot : snapshot.getChildren()) {
+                    if (Objects.equals(adminSnapshot.getKey().replace("_", "."), email)) {
+                        admin = true;
+                    }
+                }
+                if(!admin){
+                    startActivity(new Intent(AdminPanelActivity.this, HomeActivity.class));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                startActivity(new Intent(AdminPanelActivity.this, HomeActivity.class));
+            }
+        });
     }
 
     private void loadAdmins() {
