@@ -345,7 +345,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     }
 
     private void setupDateButton() {
-        final Calendar selectedDateTime = Calendar.getInstance();
+        final Calendar selectedDateTime = (Calendar) Calendar.getInstance().clone();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/M/yyyy", Locale.getDefault());
         selectDateButton.setText(dateFormat.format(selectedDateTime.getTime()));
 
@@ -527,7 +527,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
         try {
             String dateTimeStr = date + " " + startTime;
-            Calendar reservationTime = Calendar.getInstance();
+            Calendar reservationTime = (Calendar) Calendar.getInstance().clone();
             reservationTime.setTime(Objects.requireNonNull(sdf.parse(dateTimeStr)));
 
             // Subtract 1 hour for the notification trigger
