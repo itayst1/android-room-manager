@@ -203,11 +203,18 @@ public class HomeActivity extends AppCompatActivity {
         FirebaseDatabase.getInstance().getReference("settings/admins").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean admin = false;
                 for (DataSnapshot adminSnapshot : snapshot.getChildren()) {
                     if (Objects.equals(adminSnapshot.getKey().replace("_", "."), email)) {
-                        adminButton.setVisibility(View.VISIBLE);
-                        adminButton.setSystemUiVisibility(View.VISIBLE);
+                        admin = true;
                     }
+                }
+                if(admin){
+                    adminButton.setVisibility(View.VISIBLE);
+                    adminButton.setSystemUiVisibility(View.VISIBLE);
+                } else{
+                    adminButton.setVisibility(View.GONE);
+                    adminButton.setSystemUiVisibility(View.GONE);
                 }
             }
 
