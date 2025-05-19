@@ -145,6 +145,11 @@ public class ReportDialog extends DialogFragment {
             return;
         }
 
+        if(reportText.length() > 1000){
+            Toast.makeText(getContext(), "Max 1000 characters.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
         Map<String, Object> reportData = new HashMap<>();
         reportData.put("message", reportText);
