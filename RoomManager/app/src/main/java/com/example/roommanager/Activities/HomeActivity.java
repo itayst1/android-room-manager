@@ -3,6 +3,7 @@ package com.example.roommanager.Activities;
 import static android.content.ContentValues.TAG;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -89,6 +90,8 @@ public class HomeActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
+
+        requestNotificationPermission(HomeActivity.this);
 
         loadUserReservations();
         autoUpdateReservations();
@@ -214,6 +217,19 @@ public class HomeActivity extends AppCompatActivity {
                 adminButton.setSystemUiVisibility(View.GONE);
             }
         });
+    }
+
+    public static void requestNotificationPermission(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        activity,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        1001 // Any unique request code
+                );
+            }
+        }
     }
 
     private void loadUserReservations() {
@@ -345,7 +361,6 @@ public class HomeActivity extends AppCompatActivity {
 
         return row;
     }
-
 
 
     private TextView createTextView(String text) {
