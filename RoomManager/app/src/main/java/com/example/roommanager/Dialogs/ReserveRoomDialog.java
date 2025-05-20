@@ -151,13 +151,13 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         // Populate the time slots (7:00 AM - 5:00 PM in 30-min intervals)
         for (String timeRange : timeSlots) {
 
-            String startTime = timeRange.split("-")[0];
+            String endTime = timeRange.split("-")[1];
 
             int year = Integer.parseInt(selectDateButton.getText().toString().split("/")[2]);
             int month = Integer.parseInt(selectDateButton.getText().toString().split("/")[1]) - 1;
             int day = Integer.parseInt(selectDateButton.getText().toString().split("/")[0]);
             Calendar check = (Calendar) Calendar.getInstance().clone();
-            check.set(year, month, day, Integer.parseInt(startTime.split(":")[0]), Integer.parseInt(startTime.split(":")[1]), 0);
+            check.set(year, month, day, Integer.parseInt(endTime.split(":")[0]), Integer.parseInt(endTime.split(":")[1]), 0);
 
             // Add the time range to the timeSlots list
 
