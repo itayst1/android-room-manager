@@ -382,7 +382,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                         roomTypes.add(roomType);
                     }
                 }
-                Collections.reverse(roomTypes);
+                Collections.sort(roomTypes);
 
                 adapter.clear();
                 adapter.addAll(roomTypes);
@@ -456,6 +456,10 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             Toast.makeText(context, "Select a time slot", Toast.LENGTH_SHORT).show();
             return;
         }
+        if(selectedTime.getText().toString().split("-")[1].equals("Out of bounds!")){
+            Toast.makeText(context, "Selected time is out of bounds!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String email = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
         String roomType = roomSpinner.getSelectedItem().toString();
         String duration = durations[durationPicker.getValue()];
@@ -514,8 +518,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         }
 
         if (startIndex + durationLessons - 1 >= timeSlots.size()) {
-            String lastSlot = timeSlots.get(timeSlots.size() - 1);
-            return lastSlot.split("-")[1];
+            return "Out of bounds!";
         }
 
         // Get the end time of the last lesson in the range
