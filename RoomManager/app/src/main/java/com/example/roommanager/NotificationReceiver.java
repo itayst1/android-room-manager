@@ -37,6 +37,6 @@ public class NotificationReceiver extends BroadcastReceiver {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true);
 
-        notificationManager.notify(1001, builder.build());
+        notificationManager.notify(1002, builder.build());
     }
 }

@@ -481,7 +481,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                 String reservationId = reservationRef.getKey();
                 reservationRef.setValue(reservation)
                         .addOnSuccessListener(aVoid -> {
-                            scheduleNotification(context, date, time, room, reservationId);
+                            scheduleNotification(context, selectDateButton.getText().toString(), time, room, reservationId);
                             Toast.makeText(context, "Room " + room + " reserved!", Toast.LENGTH_SHORT).show();
                             dismiss();
                         })
@@ -549,7 +549,6 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                         intent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
                 );
-
                 AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
             }
@@ -557,5 +556,4 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             e.printStackTrace();
         }
     }
-
 }
