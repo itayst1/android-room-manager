@@ -42,7 +42,7 @@ import com.example.roommanager.Dialogs.ReportDialog;
 import com.example.roommanager.NotificationReceiver;
 import com.example.roommanager.R;
 import com.example.roommanager.Dialogs.ReserveRoomDialog;
-import com.example.roommanager.Reservation;
+import com.example.roommanager.Objects.Reservation;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;

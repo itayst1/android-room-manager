@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.roommanager.R;
-import com.example.roommanager.Report;
+import com.example.roommanager.Objects.Report;
 
 import java.util.List;
 

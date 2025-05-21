@@ -36,7 +36,7 @@ import com.example.roommanager.Activities.HomeActivity;
 import com.example.roommanager.Adapters.TimeSlotAdapter;
 import com.example.roommanager.NotificationReceiver;
 import com.example.roommanager.R;
-import com.example.roommanager.Reservation;
+import com.example.roommanager.Objects.Reservation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

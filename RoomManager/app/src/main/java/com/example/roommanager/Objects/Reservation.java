@@ -1,4 +1,4 @@
-package com.example.roommanager;
+package com.example.roommanager.Objects;
 
 public class Reservation {
     public String userEmail;
