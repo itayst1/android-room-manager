@@ -164,7 +164,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             if (Calendar.getInstance().before(check)) {
                 reservedSlots.add("Available");
             } else {
-                reservedSlots.add("Past");
+                reservedSlots.add("Passed");
             }
             availableRooms.add(new ArrayList<>());
         }
@@ -299,7 +299,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
 
     @Override
     public void onTimeSlotClick(String timeSlot) {
-        if (reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Past"))
+        if (reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Passed"))
             return;
         String startTime = timeSlot.split("-")[0];
         String duration = String.valueOf(durations[durationPicker.getValue()].charAt(0));

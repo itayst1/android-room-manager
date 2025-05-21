@@ -59,7 +59,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
             holder.timeSlotStatus.setText("Available");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_green);
         } else {
-            holder.timeSlotStatus.setText("Time past");
+            holder.timeSlotStatus.setText("Time passed");
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
         }
 
@@ -72,6 +72,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
             }
         } else {
             holder.timeSlot.setBackgroundColor(Color.TRANSPARENT); // Default background
+            selectedPosition = -1;
         }
 
         // Set a click listener on the time slot
