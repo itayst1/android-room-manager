@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.credentials.Credential;
@@ -87,12 +88,16 @@ public class MainActivity extends AppCompatActivity {
                     public void onResult(GetCredentialResponse result) {
                         // Extract credential from the result returned by Credential Manager
                         handleSignIn(result.getCredential());
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                        });
                     }
 
                     @Override
                     public void onError(GetCredentialException e) {
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
+                            Toast.makeText(MainActivity.this, "Sign in failed. Please try again or use a different Email.", Toast.LENGTH_LONG).show();
                         });
                         mAuth.signOut();
                         Log.e("sign in", "Couldn't retrieve user's credentials: " + e.getLocalizedMessage());
