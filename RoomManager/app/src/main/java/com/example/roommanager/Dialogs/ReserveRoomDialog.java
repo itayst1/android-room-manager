@@ -13,6 +13,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +71,8 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     private List<String> minutes = new ArrayList<>();
     private String[] durations = {"1 lesson", "2 lessons", "3 lessons", "4 lessons", "5 lessons"};
 
+    private TextToSpeech tts;
+
     private Context context;
 
     @NonNull
@@ -82,6 +85,17 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
 
         context = getContext();
         initViews(dialog);
+
+        tts = new TextToSpeech(context, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = tts.setLanguage(Locale.US); // or Locale.getDefault()
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TTS", "Language not supported");
+                }
+            } else {
+                Log.e("TTS", "Initialization failed");
+            }
+        });
 
         cancelButton.setOnClickListener(v -> dismiss());
 
@@ -117,6 +131,22 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             if (positiveButton != null) {
                 positiveButton.setTextColor(0xFF000000);
             }
+            speak("Please check your internet connection and try again later.");
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
+    }
+
+    private void speak(String text) {
+        if (tts != null) {
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
         }
     }
 
@@ -398,6 +428,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(getContext(), "Failed to load room types", Toast.LENGTH_SHORT).show();
+                speak("Failed to load rooms");
             }
         });
 
@@ -454,10 +485,12 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
     private void handleReservation() {
         if (selectedTime.getText().toString().isEmpty()) {
             Toast.makeText(context, "Select a time slot", Toast.LENGTH_SHORT).show();
+            speak("Please select a time slot");
             return;
         }
         if(selectedTime.getText().toString().split("-")[1].equals("Out of bounds!")){
             Toast.makeText(context, "Selected time is out of bounds!", Toast.LENGTH_SHORT).show();
+            speak("Selected time is out of bounds!");
             return;
         }
         String email = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
@@ -473,6 +506,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
         String endTime = selectedTime.getText().toString().split("-")[1];
         if (availableRooms.get(timeSlots.indexOf(time + "-" + getEndTimeFromStart(time, "1"))).isEmpty()) {
             Toast.makeText(context, "No available rooms", Toast.LENGTH_SHORT).show();
+            speak("No available rooms");
             return;
         }
         boolean didReserve = false;
@@ -487,15 +521,19 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
                         .addOnSuccessListener(aVoid -> {
                             scheduleNotification(context, selectDateButton.getText().toString(), time, room, reservationId);
                             Toast.makeText(context, "Room " + room + " reserved!", Toast.LENGTH_SHORT).show();
+                            speak("Room " + room + " reserved!");
                             dismiss();
                         })
-                        .addOnFailureListener(e ->
-                                Toast.makeText(context, "Reservation failed", Toast.LENGTH_SHORT).show());
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Reservation failed", Toast.LENGTH_SHORT).show();
+                            speak("Reservation failed");
+                        });
                 break;
             }
         }
         if (!didReserve) {
             Toast.makeText(context, "Reservation failed", Toast.LENGTH_SHORT).show();
+            speak("Reservation failed");
         }
     }
 
