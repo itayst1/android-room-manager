@@ -68,7 +68,7 @@
 
 
         <!-- Reservations Recycler -->
-        <ScrollView
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="480dp"
             android:fillViewport="true"
@@ -86,7 +86,7 @@
             android:orientation="horizontal"
             android:paddingTop="10dp"
             android:paddingBottom="10dp" />
-        </ScrollView>
+        </HorizontalScrollView>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
