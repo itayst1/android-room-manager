@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -70,6 +72,8 @@ public class HomeActivity extends AppCompatActivity {
     private ImageButton reserveButton;
     private FloatingActionButton adminButton;
     private LinearLayout myReservationsRecycler;
+
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +89,24 @@ public class HomeActivity extends AppCompatActivity {
         initializeUI();
         setupButtonListeners();
 
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = tts.setLanguage(Locale.US); // or Locale.getDefault()
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TTS", "Language not supported");
+                } else{
+                    try {
+                        speak("Welcome, " + mAuth.getCurrentUser().getDisplayName());
+                    } catch (Exception e) {
+                        speak("Welcome");
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                Log.e("TTS", "Initialization failed");
+            }
+        });
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
@@ -95,6 +117,21 @@ public class HomeActivity extends AppCompatActivity {
 
         loadUserReservations();
         autoUpdateReservations();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
+    }
+
+    private void speak(String text) {
+        if (tts != null) {
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
     }
 
     private void autoUpdateReservations() {
@@ -164,6 +201,7 @@ public class HomeActivity extends AppCompatActivity {
         toggleUI(false);
 
         mAuth.signOut();
+        speak("Signing out, goodbye...");
         Log.d(TAG, "Signing out...");
 
         ClearCredentialStateRequest clearRequest = new ClearCredentialStateRequest();
@@ -398,6 +436,7 @@ public class HomeActivity extends AppCompatActivity {
                             assert requestCode != null;
                             cancelNotification(getBaseContext(), requestCode);
                             Toast.makeText(this, "Reservation deleted", Toast.LENGTH_SHORT).show();
+                            speak("Reservation deleted");
                             loadUserReservations(); // Refresh the list
                         } else {
                             Toast.makeText(this, "Failed to delete reservation", Toast.LENGTH_SHORT).show();
