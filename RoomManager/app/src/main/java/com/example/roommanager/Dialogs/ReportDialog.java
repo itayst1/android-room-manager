@@ -201,4 +201,3 @@ public class ReportDialog extends DialogFragment {
         }
     }
 }
-
