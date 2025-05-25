@@ -94,13 +94,6 @@ public class HomeActivity extends AppCompatActivity {
                 int result = tts.setLanguage(Locale.US); // or Locale.getDefault()
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e("TTS", "Language not supported");
-                } else{
-                    try {
-                        speak("Welcome, " + mAuth.getCurrentUser().getDisplayName());
-                    } catch (Exception e) {
-                        speak("Welcome");
-                        e.printStackTrace();
-                    }
                 }
             } else {
                 Log.e("TTS", "Initialization failed");
