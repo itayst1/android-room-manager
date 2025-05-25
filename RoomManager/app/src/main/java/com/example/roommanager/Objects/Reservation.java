@@ -27,4 +27,3 @@ public class Reservation {
         return userEmail;
     }
 }
-
