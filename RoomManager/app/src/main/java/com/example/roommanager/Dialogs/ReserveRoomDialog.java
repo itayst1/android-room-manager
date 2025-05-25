@@ -488,7 +488,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
             speak("Please select a time slot");
             return;
         }
-        if(selectedTime.getText().toString().split("-")[1].equals("Out of bounds!")){
+        if (selectedTime.getText().toString().split("-")[1].equals("Out of bounds!")) {
             Toast.makeText(context, "Selected time is out of bounds!", Toast.LENGTH_SHORT).show();
             speak("Selected time is out of bounds!");
             return;
