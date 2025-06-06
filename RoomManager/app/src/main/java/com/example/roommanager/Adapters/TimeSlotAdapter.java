@@ -1,6 +1,7 @@
 package com.example.roommanager.Adapters;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -101,7 +102,10 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
             holder.timeSlotStatus.setBackgroundResource(R.drawable.rounded_red);
         }
 
-        if (holder.timeSlotStatus.getText().equals("Available")) {
+        Log.d("debug", selectedPosition + "");
+        Log.d("debug", holder.timeSlotStatus.getText() + "");
+        Log.d("debug", holder.getAdapterPosition() + "");
+        if (holder.timeSlotStatus.getText().toString().equals("Available")) {
             // Change background color of the selected item
             if (selectedPosition == holder.getAdapterPosition()) {
                 holder.timeSlot.setBackgroundResource(R.drawable.rounded_background_color); // Highlight selected item
@@ -110,7 +114,6 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.TimeSl
             }
         } else if (adapterPosition == timeSlots.size()) {
             holder.timeSlot.setBackgroundColor(Color.TRANSPARENT); // Default background
-            selectedPosition = -1;
         }
 
         // Set a click listener on the time slot
