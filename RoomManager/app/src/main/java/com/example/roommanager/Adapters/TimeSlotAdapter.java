@@ -2,6 +2,7 @@ package com.example.roommanager.Adapters;
 
 import android.graphics.Color;
 import android.util.Log;
+<<<<<<< HEAD
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +42,8 @@ import com.example.roommanager.R;
 
 import java.util.List;
 import android.graphics.Color;
+=======
+>>>>>>> 3a9fccc (bug fix)
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
