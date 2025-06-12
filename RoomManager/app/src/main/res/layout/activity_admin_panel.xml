@@ -29,8 +29,8 @@
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/btnAddAdmin"
-        android:text="Add Admin"
+        android:id="@+id/btnViewReports"
+        android:text="View Reports"
         android:layout_marginTop="12dp"
         android:backgroundTint="@color/buttonColor"
         android:textColor="@color/white"
@@ -38,8 +38,17 @@
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/btnViewReports"
-        android:text="View Reports"
+        android:id="@+id/btnViewReservations"
+        android:text="View All Reservations"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="@color/buttonColor"
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btnAddAdmin"
+        android:text="Add Admin"
         android:layout_marginTop="12dp"
         android:backgroundTint="@color/buttonColor"
         android:textColor="@color/white"

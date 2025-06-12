@@ -1,13 +1,10 @@
 package com.example.roommanager.Activities;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.roommanager.Adapters.AdminAdapter;
 import com.example.roommanager.R;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 
@@ -45,6 +41,7 @@ public class AdminPanelActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         // UI Elements
+        Button btnViewReservations = findViewById(R.id.btnViewReservations);
         Button btnAddAdmin = findViewById(R.id.btnAddAdmin);
         Button btnViewReports = findViewById(R.id.btnViewReports);
         Button btnBack = findViewById(R.id.btnBack);
@@ -66,6 +63,8 @@ public class AdminPanelActivity extends AppCompatActivity {
         loadAdmins();
 
         // Button actions
+        btnViewReservations.setOnClickListener(v -> startActivity(new Intent(AdminPanelActivity.this, AdminViewReservationsActivity.class)));
+
         btnAddAdmin.setOnClickListener(v -> showAddAdminDialog());
 
         btnViewReports.setOnClickListener(v -> {
