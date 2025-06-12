@@ -329,8 +329,8 @@ public class HomeActivity extends AppCompatActivity {
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setBackgroundResource(R.drawable.rounded_background_color);
-        row.setPadding(30, 40, 30, 40); // top/bottom padding helps vertical alignment
-        row.setGravity(Gravity.CENTER_VERTICAL); // ✅ This centers children vertically
+        row.setPadding(30, 40, 30, 40);
+        row.setGravity(Gravity.CENTER_VERTICAL);
 
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -352,7 +352,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Trash icon
         ImageButton deleteButton = new ImageButton(context);
-        deleteButton.setImageResource(R.drawable.ic_trash); // your trash icon
+        deleteButton.setImageResource(R.drawable.ic_trash);
         deleteButton.setBackgroundColor(Color.TRANSPARENT);
         deleteButton.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
         deleteButton.setPadding(30, 0, 30, 0);

@@ -299,7 +299,7 @@ public class ReserveRoomDialog extends DialogFragment implements TimeSlotAdapter
 
     @Override
     public void onTimeSlotClick(String timeSlot) {
-        if (reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Passed"))
+        if (reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Reserved") || reservedSlots.get(timeSlots.indexOf(timeSlot)).equals("Time passed"))
             return;
         String startTime = timeSlot.split("-")[0];
         String duration = String.valueOf(durations[durationPicker.getValue()].charAt(0));
