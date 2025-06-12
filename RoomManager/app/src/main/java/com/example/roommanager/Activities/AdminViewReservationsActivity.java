@@ -1,8 +1,11 @@
 package com.example.roommanager.Activities;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.example.roommanager.Objects.Reservation;
@@ -141,12 +144,7 @@ public class AdminViewReservationsActivity extends AppCompatActivity {
 
                         // Add all reservation buttons under this date
                         for (ReservationWithRef res : reservationsForDate) {
-                            View view = createReservationRow(
-                                    res.reservation.getUserEmail(),
-                                    res.roomName,
-                                    res.reservation.getStartTime(),
-                                    res.reservation.getEndTime(),
-                                    res.ref);
+                            View view = createReservationRow(res);
                             ReservationsRecycler.addView(view);
                         }
                     }
@@ -162,7 +160,30 @@ public class AdminViewReservationsActivity extends AppCompatActivity {
         });
     }
 
-    private LinearLayout createReservationRow(String email, String roomName, String startTime, String endTime, DatabaseReference reservationRef) {
+    public void sendEmailNotification(Context context, String userEmail, String reservationInfo) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+
+        String subject = "Reservation Cancellation Notice";
+        String body = "Hello,\n\n" +
+                "We wanted to inform you that your reservation has been cancelled.\n\n" +
+                "Reservation details:\n" + reservationInfo + "\n\n" +
+                "If you have any questions, feel free to contact על\"ה supervisor.\n\n" +
+                "Thank you.";
+
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{userEmail});
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+
+        try {
+            context.startActivity(Intent.createChooser(intent, "Send Email"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(context, "No email app found.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private LinearLayout createReservationRow(ReservationWithRef reservation) {
         Context context = getBaseContext();
 
         LinearLayout row = new LinearLayout(context);
@@ -180,7 +201,7 @@ public class AdminViewReservationsActivity extends AppCompatActivity {
 
         // Text
         TextView textView = new TextView(context);
-        textView.setText(email + "\n" + "Room: " + roomName + " | " + startTime + "-" + endTime);
+        textView.setText(reservation.reservation.userEmail + "\n" + "Room: " + reservation.roomName + " | " + reservation.reservation.startTime + "-" + reservation.reservation.endTime);
         textView.setTextColor(Color.WHITE);
         textView.setTextSize(18);
         textView.setLayoutParams(new LinearLayout.LayoutParams(
@@ -200,7 +221,7 @@ public class AdminViewReservationsActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
 
-        deleteButton.setOnClickListener(v -> deleteReservation(reservationRef));
+        deleteButton.setOnClickListener(v -> deleteReservation(reservation));
 
         row.addView(textView);
         row.addView(deleteButton);
@@ -227,9 +248,10 @@ public class AdminViewReservationsActivity extends AppCompatActivity {
         return textView;
     }
 
-    private void deleteReservation(DatabaseReference reservationRef) {
+    private void deleteReservation(ReservationWithRef reservation) {
+        DatabaseReference reservationRef = reservation.ref;
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.CustomDialogTheme));
-        builder.setMessage("Are you sure you want to delete this reservation?")
+        builder.setMessage("Are you sure you want to delete this reservation?\nPressing \"Yes\" will delete the reservation and prompt you to send a cancellation to the user.")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     String requestCode = reservationRef.getKey();
                     reservationRef.removeValue().addOnCompleteListener(task -> {
@@ -237,6 +259,7 @@ public class AdminViewReservationsActivity extends AppCompatActivity {
                             assert requestCode != null;
                             Toast.makeText(this, "Reservation deleted", Toast.LENGTH_SHORT).show();
                             loadUserReservations(); // Refresh the list
+                            sendEmailNotification(this, reservation.reservation.getUserEmail(), "Room: " + reservation.roomName + "\nDate: " + reservation.date + "\nTime: " + reservation.reservation.getStartTime() + "-" + reservation.reservation.getEndTime());
                         } else {
                             Toast.makeText(this, "Failed to delete reservation", Toast.LENGTH_SHORT).show();
                         }
