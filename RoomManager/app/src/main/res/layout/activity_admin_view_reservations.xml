@@ -33,14 +33,10 @@
 
 
     <!-- Reservations Recycler -->
-    <ScrollView
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/parent">
+        android:fillViewport="true" >
 
         <LinearLayout
             android:id="@+id/ReservationsView"
@@ -51,7 +47,7 @@
             android:orientation="horizontal"
             android:paddingTop="10dp"
             android:paddingBottom="10dp" />
-    </ScrollView>
+    </HorizontalScrollView>
 
     <ProgressBar
         android:id="@+id/progress_bar_sign_out"
